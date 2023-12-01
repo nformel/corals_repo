@@ -100,6 +100,19 @@ void setup()  {
     //update the value of sampleNumber to be a random value between 1 and 4 (inclusive)
     Entropy.Initialize();
     sampleNumber = Entropy.random(1,4);
+
+    /*
+     * We'll call this "Type 1" change
+    // Try replacing conditional with a "format string". Psuedo code replacement:
+    if (sampleNumber <= 4 )
+    {
+      printAndLog("sampleNumber = %d", sampleNumber); // would need to verify "printAndLog" accepts a format string, otherwise, you may need another wrapper function
+    }
+    else 
+    {
+        printAndLog("sampleNumber is out of range.");
+    }
+    */
     if (sampleNumber == 1 ){
       printAndLog("sampleNumber = 1");
       }
@@ -146,11 +159,13 @@ void loop() {
 
 // ALARM FUNCTIONS
 // Audio file 1
+// propagate changes for Alarm1 to all other alarms, call it "alarm change"
 void startPlayingAlarm1() {
   printAndLog("Alarm1");
+  // Replace below by "Type 1" change
   if (sampleNumber == 1){
     playFile("18TKP1.WAV");  // filenames are always uppercase 8.3 format
-    delay(250);
+    delay(250); // pull this out of the conditional since it's common to all conditions (minimize redundancy)
     }
   else if (sampleNumber == 2){
     playFile("18TKP2.WAV");
@@ -171,6 +186,7 @@ void startPlayingAlarm1() {
   }
 }
 // Audio file 2
+// "alarm change"
 void startPlayingAlarm2() {
   printAndLog("Alarm2");
   if (sampleNumber == 1){
@@ -196,6 +212,7 @@ void startPlayingAlarm2() {
   }
 }
 // Audio file 3
+// "alarm change"
 void startPlayingAlarm3() {
   printAndLog("Alarm3");
   if (sampleNumber == 1){
@@ -221,6 +238,7 @@ void startPlayingAlarm3() {
   }
 }
 // Audio file 4
+// "alarm change"
 void startPlayingAlarm4() {
   printAndLog("Alarm4");
   if (sampleNumber == 1){
@@ -246,6 +264,7 @@ void startPlayingAlarm4() {
   }
 }
 // Audio file 5
+// "alarm change"
 void startPlayingAlarm5() {
   printAndLog("Alarm5");
   if (sampleNumber == 1){
@@ -271,6 +290,7 @@ void startPlayingAlarm5() {
   }
 }
 // Audio file 6
+// "alarm change"
 void startPlayingAlarm6() {
   printAndLog("Alarm6");
   if (sampleNumber == 1){
@@ -296,6 +316,7 @@ void startPlayingAlarm6() {
   }
 }
 // Audio file 7
+// "alarm change"
 void startPlayingAlarm7() {
   printAndLog("Alarm7");
   if (sampleNumber == 1){
@@ -321,6 +342,7 @@ void startPlayingAlarm7() {
   }
 }
 // Audio file 8
+// "alarm change"
 void startPlayingAlarm8() {
   printAndLog("Alarm8");
   if (sampleNumber == 1){
@@ -346,6 +368,7 @@ void startPlayingAlarm8() {
   }
 }
 // Audio file 9
+// "alarm change"
 void startPlayingAlarm9() {
   printAndLog("Alarm9");
   if (sampleNumber == 1){
@@ -371,6 +394,7 @@ void startPlayingAlarm9() {
   }
 }
 // Audio file 10
+// "alarm change"
 void startPlayingAlarm10() {
   printAndLog("Alarm10");
   if (sampleNumber == 1){
@@ -396,6 +420,7 @@ void startPlayingAlarm10() {
   }
 }
 // Audio file 11
+// "alarm change"
 void startPlayingAlarm11() {
   printAndLog("Alarm11");
   if (sampleNumber == 1){
@@ -421,6 +446,7 @@ void startPlayingAlarm11() {
   }
 }
 // Audio file 12
+// "alarm change"
 void startPlayingAlarm12() {
   printAndLog("Alarm12");
   if (sampleNumber == 1){
@@ -511,7 +537,7 @@ bool mode_on() {
       //Serial.println("Case 2");
       return 1;
     }
-    else if (stopSeconds <= nowSeconds && nowSeconds < 86399) {
+    else if (stopSeconds <= nowSeconds && nowSeconds < 86399) { // replace magic number with a named constant: #define SOME_DESCRIPTIVE_VARIABLE_NAME
       //Serial.println("Case 3");
       return 0;
     }
@@ -641,12 +667,13 @@ void fault_check(){
   if (mode_play_result == 1 && playWav1.isPlaying() == false){ 
   printAndLog("Fault check: play default hour track");
   
+// "alarm change"
     if (hour() == 18){
       playFile("18TKP1.WAV");  // filenames are always uppercase 8.3 format 
       delay(250); // wait for library to parse WAV info
     }
     else if (hour() == 19){
-      playFile("19TKP1.WAV");
+      playFile("19TKP1.WAV"); // this could look like: playFile("%dTKP1.WAV",hour());
       delay(250);
     }
     else if (hour() == 20){
