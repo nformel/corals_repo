@@ -13,14 +13,31 @@
 #include <SD.h>
 #include <SerialFlash.h>
 #include <Entropy.h>
+#include <string>
+using namespace std;
 AudioPlaySdWav           playWav1;
 AudioOutputI2S           audioOutput;
 AudioConnection          patchCord1(playWav1, 0, audioOutput, 0);
 AudioConnection          patchCord2(playWav1, 1, audioOutput, 1);
 AudioControlSGTL5000     sgtl5000_1;
+
+// Pound define
 #define SDCARD_CS_PIN    10
 #define SDCARD_MOSI_PIN  7
 #define SDCARD_SCK_PIN   14
+#define WAIT_AFTER_PLAY_MS 250
+#define ALARM_1 18
+#define ALARM_2 19
+#define ALARM_3 20
+#define ALARM_4 21
+#define ALARM_5 22
+#define ALARM_6 23
+#define ALARM_7 0
+#define ALARM_8 1
+#define ALARM_9 2
+#define ALARM_10 3
+#define ALARM_11 4
+#define ALARM_12 5
 
 // USER DEFINED GLOBAL VARIABLES
 // Wake Time
@@ -52,6 +69,7 @@ File myFile;
 /////////////
 //FUNCTIONS//
 /////////////
+
 //Digital Clock Code
 void printDigits(int digits) {
   // utility function for digital clock display on Serial monitor: prints preceding colon and leading 0
@@ -105,6 +123,28 @@ void printAndLog(const char string[]){
   logSD(string);
   }
 
+// Add an integer to a string
+const char * customAdd(std::string string, int b){
+    std::string concat = string + std::to_string(b);
+    const char * result = concat.c_str(); //convert string to pointer
+    return result;  
+}
+
+// construct playback file name from an hour + sample number (e.g. 18TKP1.WAV)
+const char * makeFileName(int hr, int samp){
+    std::string hour = "00";
+    if (hr < 10){
+      hour = "0" + std::to_string(hr);
+    }
+    else {
+      hour = std::to_string(hr);
+    }
+    
+    std::string concat = hour + "TKP" + std::to_string(samp) + ".WAV";
+    const char * result = concat.c_str(); //convert string to pointer
+    return result;  
+}
+
 // WAV FILE PLAYER AND TPL5110 HELPER FUNCTIONS
 // playFile function from WAV file player
 void playFile(const char string[]) {
@@ -131,302 +171,80 @@ void doneSignal() {
 // Audio file 1
 void startPlayingAlarm1() {
   printAndLog("Alarm1");
-  if (sampleNumber == 1){
-    playFile("18TKP1.WAV");  // filenames are always uppercase 8.3 format
-    delay(250);
-    }
-  else if (sampleNumber == 2){
-    playFile("18TKP2.WAV");
-    delay(250);
-    } 
-  else if (sampleNumber == 3){
-    playFile("18TKP3.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 4){
-    playFile("18TKP4.WAV");
-    delay(250);
-    }
+  playFile(makeFileName(ALARM_1, sampleNumber));
+  delay(250);
+  /* Got rid of this block, perhaps could put it back in wth a try block. But fault checker should do the same thing..  
   else {
     printAndLog("sampleNumber did not register. Default = 1");
     playFile("18TKP1.WAV");
-    delay(250);
   }
+  */
 }
 // Audio file 2
 void startPlayingAlarm2() {
   printAndLog("Alarm2");
-  if (sampleNumber == 1){
-    playFile("19TKP1.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 2){
-    playFile("19TKP2.WAV");
-    delay(250);
-    } 
-  else if (sampleNumber == 3){
-    playFile("19TKP3.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 4){
-    playFile("19TKP4.WAV");
-    delay(250);
-    }
-  else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("19TKP1.WAV");
-    delay(250);
-  }
+  playFile(makeFileName(ALARM_2, sampleNumber));
+  delay(250);
 }
 // Audio file 3
 void startPlayingAlarm3() {
   printAndLog("Alarm3");
-  if (sampleNumber == 1){
-    playFile("20TKP1.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 2){
-    playFile("20TKP2.WAV");
-    delay(250);
-    } 
-  else if (sampleNumber == 3){
-    playFile("20TKP3.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 4){
-    playFile("20TKP4.WAV");
-    delay(250);
-    }
-  else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("20TKP1.WAV");
-    delay(250);
-  }
+  playFile(makeFileName(ALARM_3, sampleNumber));
+  delay(250);
 }
 // Audio file 4
 void startPlayingAlarm4() {
   printAndLog("Alarm4");
-  if (sampleNumber == 1){
-    playFile("21TKP1.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 2){
-    playFile("21TKP2.WAV");
-    delay(250);
-    } 
-  else if (sampleNumber == 3){
-    playFile("21TKP3.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 4){
-    playFile("21TKP4.WAV");
-    delay(250);
-    }
-  else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("20TKP1.WAV");
-    delay(250);
-  }
+  playFile(makeFileName(ALARM_4, sampleNumber));
+  delay(250);
 }
 // Audio file 5
 void startPlayingAlarm5() {
   printAndLog("Alarm5");
-  if (sampleNumber == 1){
-    playFile("22TKP1.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 2){
-    playFile("22TKP2.WAV");
-    delay(250);
-    } 
-  else if (sampleNumber == 3){
-    playFile("22TKP3.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 4){
-    playFile("22TKP4.WAV");
-    delay(250);
-    }
-  else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("22TKP1.WAV");
-    delay(250);
-  }
+  playFile(makeFileName(ALARM_5, sampleNumber));
+  delay(250);
 }
 // Audio file 6
 void startPlayingAlarm6() {
   printAndLog("Alarm6");
-  if (sampleNumber == 1){
-    playFile("23TKP1.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 2){
-    playFile("23TKP2.WAV");
-    delay(250);
-    } 
-  else if (sampleNumber == 3){
-    playFile("23TKP3.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 4){
-    playFile("23TKP4.WAV");
-    delay(250);
-    }
-  else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("23TKP1.WAV");
-    delay(250);
-  }
+  playFile(makeFileName(ALARM_6, sampleNumber));
+  delay(250);
 }
 // Audio file 7
 void startPlayingAlarm7() {
   printAndLog("Alarm7");
-  if (sampleNumber == 1){
-    playFile("00TKP1.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 2){
-    playFile("00TKP2.WAV");
-    delay(250);
-    } 
-  else if (sampleNumber == 3){
-    playFile("00TKP3.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 4){
-    playFile("00TKP4.WAV");
-    delay(250);
-    }
-  else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("00TKP1.WAV");
-    delay(250);
-  }
+  playFile(makeFileName(ALARM_7, sampleNumber));
+  delay(250);
 }
 // Audio file 8
 void startPlayingAlarm8() {
   printAndLog("Alarm8");
-  if (sampleNumber == 1){
-    playFile("01TKP1.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 2){
-    playFile("01TKP2.WAV");
-    delay(250);
-    } 
-  else if (sampleNumber == 3){
-    playFile("01TKP3.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 4){
-    playFile("01TKP4.WAV");
-    delay(250);
-    }
-  else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("01TKP1.WAV");
-    delay(250);
-  }
+  playFile(makeFileName(ALARM_8, sampleNumber));
+  delay(250);
 }
 // Audio file 9
 void startPlayingAlarm9() {
   printAndLog("Alarm9");
-  if (sampleNumber == 1){
-    playFile("02TKP1.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 2){
-    playFile("02TKP2.WAV");
-    delay(250);
-    } 
-  else if (sampleNumber == 3){
-    playFile("02TKP3.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 4){
-    playFile("02TKP4.WAV");
-    delay(250);
-    }
-  else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("02TKP1.WAV");
-    delay(250);
-  }
+  playFile(makeFileName(ALARM_9, sampleNumber));
+  delay(250);
 }
 // Audio file 10
 void startPlayingAlarm10() {
   printAndLog("Alarm10");
-  if (sampleNumber == 1){
-    playFile("03TKP1.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 2){
-    playFile("03TKP2.WAV");
-    delay(250);
-    } 
-  else if (sampleNumber == 3){
-    playFile("03TKP3.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 4){
-    playFile("03TKP4.WAV");
-    delay(250);
-    }
-  else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("03TKP1.WAV");
-    delay(250);
-  }
+  playFile(makeFileName(ALARM_10, sampleNumber));
+  delay(250);
 }
 // Audio file 11
 void startPlayingAlarm11() {
   printAndLog("Alarm11");
-  if (sampleNumber == 1){
-    playFile("04TKP1.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 2){
-    playFile("04TKP2.WAV");
-    delay(250);
-    } 
-  else if (sampleNumber == 3){
-    playFile("04TKP3.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 4){
-    playFile("04TKP4.WAV");
-    delay(250);
-    }
-  else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("04TKP1.WAV");
-    delay(250);
-  }
+  playFile(makeFileName(ALARM_11, sampleNumber));
+  delay(250);
 }
 // Audio file 12
 void startPlayingAlarm12() {
   printAndLog("Alarm12");
-  if (sampleNumber == 1){
-    playFile("05TKP1.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 2){
-    playFile("05TKP2.WAV");
-    delay(250);
-    } 
-  else if (sampleNumber == 3){
-    playFile("05TKP3.WAV");
-    delay(250);
-    }
-  else if (sampleNumber == 4){
-    playFile("05TKP4.WAV");
-    delay(250);
-    }
-  else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("05TKP1.WAV");
-    delay(250);
-  }
+  playFile(makeFileName(ALARM_12, sampleNumber));
+  delay(250);
 }
 
 // Turn off system
@@ -454,15 +272,6 @@ bool mode_on() {
   int startSeconds = time2sec(startH, startM, startS);
   int stopSeconds = time2sec(stopH, stopM, stopS);
   bool rtrn = 0;
-
-  /*
-  Serial.print("Start Seconds: ");
-  Serial.println(startSeconds);
-  Serial.print("Now Seconds: ");
-  Serial.println(nowSeconds);
-  Serial.print("Stop Seconds: ");
-  Serial.println(stopSeconds);
-  */
   
   if (startSeconds < stopSeconds) {
     //Serial.println("Play interval does not include midnight");
@@ -558,57 +367,6 @@ void fault_check(){
   bool mode_play_result = mode_play();
   if (mode_play_result == 1 && playWav1.isPlaying() == false){ 
   printAndLog("Fault check: play default hour track");
-  
-    if (hour() == 18){
-      playFile("18TKP1.WAV");  // filenames are always uppercase 8.3 format 
-      delay(250); // wait for library to parse WAV info
-    }
-    else if (hour() == 19){
-      playFile("19TKP1.WAV");
-      delay(250);
-    }
-    else if (hour() == 20){
-      playFile("20TKP1.WAV");
-      delay(250);
-    }
-    else if (hour() == 21){
-      playFile("21TKP1.WAV");
-      delay(250);
-    }
-    else if (hour() == 22){
-      playFile("22TKP1.WAV");
-      delay(250);
-    }
-    else if (hour() == 23){
-      playFile("23TKP1.WAV");
-      delay(250);
-    }
-    else if (hour() == 0){
-      playFile("00TKP1.WAV");
-      delay(250);
-    }
-    else if (hour() == 1){
-      playFile("01TKP1.WAV");
-      delay(250);
-    }
-    else if (hour() == 2){
-      playFile("02TKP1.WAV");
-      delay(250);
-    }
-    else if (hour() == 3){
-      playFile("03TKP1.WAV");
-      delay(250);
-    }
-    else if (hour() == 4){
-      playFile("04TKP1.WAV");
-      delay(250);
-    }
-    else if (hour() == 5){
-      playFile("05TKP1.WAV");
-      delay(250);
-    }
-    else{ //Serial.println("Im stuck here");
-    }
   }
   else { //Serial.println("No, I'm stuck here"); // Do nothing, system is on but waiting to play. No issue.  
   }
@@ -667,20 +425,13 @@ void setup()  {
     //update the value of sampleNumber to be a random value between 1 and 4 (inclusive)
     Entropy.Initialize();
     sampleNumber = Entropy.random(1,4);
-    if (sampleNumber == 1 ){
-      printAndLog("sampleNumber = 1");
+
+    if (sampleNumber <= 4 ){
+      printAndLog(customAdd("sampleNumber =", sampleNumber));
       }
-    else if (sampleNumber == 2){
-      printAndLog("sampleNumber = 2");
-      }
-    else if (sampleNumber == 3){
-      printAndLog("sampleNumber = 3");
-      }
-    else if (sampleNumber == 4){
-      printAndLog("sampleNumber = 4");
-      }
-    else {printAndLog("sampleNumber is out of range.");
-    }
+    else{
+      printAndLog("sampleNumber out of range");
+      }    
 
     //Set up alarms
     // First alarm for play
