@@ -21,7 +21,7 @@ AudioConnection          patchCord1(playWav1, 0, audioOutput, 0);
 AudioConnection          patchCord2(playWav1, 1, audioOutput, 1);
 AudioControlSGTL5000     sgtl5000_1;
 
-// Pound define
+// # defines
 #define SDCARD_CS_PIN    10
 #define SDCARD_MOSI_PIN  7
 #define SDCARD_SCK_PIN   14
@@ -38,6 +38,9 @@ AudioControlSGTL5000     sgtl5000_1;
 #define ALARM_10 3
 #define ALARM_11 4
 #define ALARM_12 5
+#define SEC_PRE_MIDNIGHT 86399
+#define MIDNIGHT_IN_SEC 86400
+#define BAUDE_RATE 115200
 
 // USER DEFINED GLOBAL VARIABLES
 // Wake Time
@@ -172,7 +175,7 @@ void doneSignal() {
 void startPlayingAlarm1() {
   printAndLog("Alarm1");
   playFile(makeFileName(ALARM_1, sampleNumber));
-  delay(250);
+  delay(WAIT_AFTER_PLAY_MS);
   /* Got rid of this block, perhaps could put it back in wth a try block. But fault checker should do the same thing..  
   else {
     printAndLog("sampleNumber did not register. Default = 1");
@@ -184,67 +187,67 @@ void startPlayingAlarm1() {
 void startPlayingAlarm2() {
   printAndLog("Alarm2");
   playFile(makeFileName(ALARM_2, sampleNumber));
-  delay(250);
+  delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 3
 void startPlayingAlarm3() {
   printAndLog("Alarm3");
   playFile(makeFileName(ALARM_3, sampleNumber));
-  delay(250);
+  delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 4
 void startPlayingAlarm4() {
   printAndLog("Alarm4");
   playFile(makeFileName(ALARM_4, sampleNumber));
-  delay(250);
+  delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 5
 void startPlayingAlarm5() {
   printAndLog("Alarm5");
   playFile(makeFileName(ALARM_5, sampleNumber));
-  delay(250);
+  delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 6
 void startPlayingAlarm6() {
   printAndLog("Alarm6");
   playFile(makeFileName(ALARM_6, sampleNumber));
-  delay(250);
+  delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 7
 void startPlayingAlarm7() {
   printAndLog("Alarm7");
   playFile(makeFileName(ALARM_7, sampleNumber));
-  delay(250);
+  delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 8
 void startPlayingAlarm8() {
   printAndLog("Alarm8");
   playFile(makeFileName(ALARM_8, sampleNumber));
-  delay(250);
+  delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 9
 void startPlayingAlarm9() {
   printAndLog("Alarm9");
   playFile(makeFileName(ALARM_9, sampleNumber));
-  delay(250);
+  delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 10
 void startPlayingAlarm10() {
   printAndLog("Alarm10");
   playFile(makeFileName(ALARM_10, sampleNumber));
-  delay(250);
+  delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 11
 void startPlayingAlarm11() {
   printAndLog("Alarm11");
   playFile(makeFileName(ALARM_11, sampleNumber));
-  delay(250);
+  delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 12
 void startPlayingAlarm12() {
   printAndLog("Alarm12");
   playFile(makeFileName(ALARM_12, sampleNumber));
-  delay(250);
+  delay(WAIT_AFTER_PLAY_MS);
 }
 
 // Turn off system
@@ -283,7 +286,7 @@ bool mode_on() {
       //Serial.println("Case 2");
       rtrn = 1;
     }
-    else if (stopSeconds <= nowSeconds && nowSeconds < 86399) {
+    else if (stopSeconds <= nowSeconds && nowSeconds < SEC_PRE_MIDNIGHT) {
       //Serial.println("Case 3");
       rtrn = 0;
     }
@@ -298,7 +301,7 @@ bool mode_on() {
       //Serial.println("Case 2");
       rtrn = 0;
     }
-    else if (startSeconds <= nowSeconds && nowSeconds <= 86400) {
+    else if (startSeconds <= nowSeconds && nowSeconds <= MIDNIGHT_IN_SEC) {
       //Serial.println("Case 3");
       rtrn = 1;
     }
@@ -327,7 +330,7 @@ bool mode_play() {
       //Serial.println("Case 2");
       rtrn = 1;
     }
-    else if (stopSeconds <= nowSeconds && nowSeconds < 86399) {
+    else if (stopSeconds <= nowSeconds && nowSeconds < SEC_PRE_MIDNIGHT) {
       //Serial.println("Case 3");
       rtrn = 0;
     }
@@ -342,7 +345,7 @@ bool mode_play() {
       //Serial.println("Case 2");
       rtrn = 0;
     }
-    else if (startSeconds <= nowSeconds && nowSeconds <= 86400) {
+    else if (startSeconds <= nowSeconds && nowSeconds <= MIDNIGHT_IN_SEC) {
       //Serial.println("Case 3");
       rtrn = 1;
     }
@@ -378,7 +381,7 @@ void setup()  {
   setSyncProvider(getTeensy3Time);
   
   // Set up serial for debugging
-  Serial.begin(115200);
+  Serial.begin(BAUDE_RATE);
 
   //Digital pin configurations
   pinMode(done_pin, OUTPUT);
