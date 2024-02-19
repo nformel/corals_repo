@@ -14,54 +14,14 @@
 #include <SerialFlash.h>
 #include <Entropy.h>
 #include <string>
+#include <array>
+#include <my_defines.h>
 using namespace std;
 AudioPlaySdWav           playWav1;
 AudioOutputI2S           audioOutput;
 AudioConnection          patchCord1(playWav1, 0, audioOutput, 0);
 AudioConnection          patchCord2(playWav1, 1, audioOutput, 1);
 AudioControlSGTL5000     sgtl5000_1;
-
-// # defines
-#define SDCARD_CS_PIN    10
-#define SDCARD_MOSI_PIN  7
-#define SDCARD_SCK_PIN   14
-#define WAIT_AFTER_PLAY_MS 250
-#define ALARM_1 18
-#define ALARM_2 19
-#define ALARM_3 20
-#define ALARM_4 21
-#define ALARM_5 22
-#define ALARM_6 23
-#define ALARM_7 0
-#define ALARM_8 1
-#define ALARM_9 2
-#define ALARM_10 3
-#define ALARM_11 4
-#define ALARM_12 5
-#define SEC_PRE_MIDNIGHT 86399
-#define MIDNIGHT_IN_SEC 86400
-#define BAUDE_RATE 115200
-
-// USER DEFINED GLOBAL VARIABLES
-// Wake Time
-int startH = 17;
-int startM = 50;
-int startS = 0;
-
-// Play Time (first alarm) [18:0:0 for real]
-int playH = 18;
-int playM = 0;
-int playS = 0;
-
-// Sleep Time
-int stopH = 6;
-int stopM = 0;
-int stopS = 0;
-
-// digital pin declarations
-int done_pin = 17;
-int mos_pwr = 3;
-int mos_audio = 2;
 
 // declare the sample number as global variable
 int sampleNumber;
@@ -143,7 +103,7 @@ const char * makeFileName(int hr, int samp){
       hour = std::to_string(hr);
     }
     
-    std::string concat = hour + "TKP" + std::to_string(samp) + ".WAV";
+    std::string concat = hour + SAMPLE_LOCATION + std::to_string(samp) + ".WAV";
     const char * result = concat.c_str(); //convert string to pointer
     return result;  
 }
@@ -170,11 +130,24 @@ void doneSignal() {
   digitalWrite(done_pin, LOW);
 }
 
+//Function to extract integers for strings of form "hh:mm:ss"
+std::array<int,3> timeConstruct(std::string timeString){
+  std::array<int,3> timeInts;
+  std::string hrString = timeString.substr(0,2);
+  std::string minString = timeString.substr(3,4);
+  std::string secString = timeString.substr(6,7);
+  timeInts[0] = stoi(hrString);
+  timeInts[1] = stoi(minString);
+  timeInts[2] = stoi(secString);
+
+  return timeInts;
+}
+
 // ALARM FUNCTIONS
 // Audio file 1
 void startPlayingAlarm1() {
   printAndLog("Alarm1");
-  playFile(makeFileName(ALARM_1, sampleNumber));
+  playFile(makeFileName(timeConstruct(ALARM_1)[0], sampleNumber)); //make file name from alarm hour and sample number.
   delay(WAIT_AFTER_PLAY_MS);
   /* Got rid of this block, perhaps could put it back in wth a try block. But fault checker should do the same thing..  
   else {
@@ -186,67 +159,67 @@ void startPlayingAlarm1() {
 // Audio file 2
 void startPlayingAlarm2() {
   printAndLog("Alarm2");
-  playFile(makeFileName(ALARM_2, sampleNumber));
+  playFile(makeFileName(timeConstruct(ALARM_2)[0], sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 3
 void startPlayingAlarm3() {
   printAndLog("Alarm3");
-  playFile(makeFileName(ALARM_3, sampleNumber));
+  playFile(makeFileName(timeConstruct(ALARM_3)[0], sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 4
 void startPlayingAlarm4() {
   printAndLog("Alarm4");
-  playFile(makeFileName(ALARM_4, sampleNumber));
+  playFile(makeFileName(timeConstruct(ALARM_4)[0], sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 5
 void startPlayingAlarm5() {
   printAndLog("Alarm5");
-  playFile(makeFileName(ALARM_5, sampleNumber));
+  playFile(makeFileName(timeConstruct(ALARM_5)[0], sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 6
 void startPlayingAlarm6() {
   printAndLog("Alarm6");
-  playFile(makeFileName(ALARM_6, sampleNumber));
+  playFile(makeFileName(timeConstruct(ALARM_6)[0], sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 7
 void startPlayingAlarm7() {
   printAndLog("Alarm7");
-  playFile(makeFileName(ALARM_7, sampleNumber));
+  playFile(makeFileName(timeConstruct(ALARM_7)[0], sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 8
 void startPlayingAlarm8() {
   printAndLog("Alarm8");
-  playFile(makeFileName(ALARM_8, sampleNumber));
+  playFile(makeFileName(timeConstruct(ALARM_8)[0], sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 9
 void startPlayingAlarm9() {
   printAndLog("Alarm9");
-  playFile(makeFileName(ALARM_9, sampleNumber));
+  playFile(makeFileName(timeConstruct(ALARM_9)[0], sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 10
 void startPlayingAlarm10() {
   printAndLog("Alarm10");
-  playFile(makeFileName(ALARM_10, sampleNumber));
+  playFile(makeFileName(timeConstruct(ALARM_10)[0], sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 11
 void startPlayingAlarm11() {
   printAndLog("Alarm11");
-  playFile(makeFileName(ALARM_11, sampleNumber));
+  playFile(makeFileName(timeConstruct(ALARM_11)[0], sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 12
 void startPlayingAlarm12() {
   printAndLog("Alarm12");
-  playFile(makeFileName(ALARM_12, sampleNumber));
+  playFile(makeFileName(timeConstruct(ALARM_12)[0], sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -440,17 +413,18 @@ void setup()  {
     // First alarm for play
     Alarm.alarmRepeat(playH, playM, playS, startPlayingAlarm1); //start playing first file
     // All other alarms
-    Alarm.alarmRepeat(19, 0, 0, startPlayingAlarm2); 
-    Alarm.alarmRepeat(20, 0, 0, startPlayingAlarm3); 
-    Alarm.alarmRepeat(21, 0, 0, startPlayingAlarm4); //start playing second file
-    Alarm.alarmRepeat(22, 0, 0, startPlayingAlarm5); //start playing second file
-    Alarm.alarmRepeat(23, 0, 0, startPlayingAlarm6); //start playing second file
-    Alarm.alarmRepeat(0, 0, 0, startPlayingAlarm7); //start playing second file
-    Alarm.alarmRepeat(1, 0, 0, startPlayingAlarm8); //start playing second file
-    Alarm.alarmRepeat(2, 0, 0, startPlayingAlarm9); //start playing second file
-    Alarm.alarmRepeat(3, 0, 0, startPlayingAlarm10); //start playing second file
-    Alarm.alarmRepeat(4, 0, 0, startPlayingAlarm11); //start playing second file
-    Alarm.alarmRepeat(5, 0, 0, startPlayingAlarm12); //start playing second file
+    // using timeConstruct to insert hr, min and sec into Alarm definitions
+    Alarm.alarmRepeat(timeConstruct(ALARM_2)[0], timeConstruct(ALARM_2)[1], timeConstruct(ALARM_2)[2], startPlayingAlarm2); 
+    Alarm.alarmRepeat(timeConstruct(ALARM_3)[0], timeConstruct(ALARM_3)[1], timeConstruct(ALARM_3)[2], startPlayingAlarm3); 
+    Alarm.alarmRepeat(timeConstruct(ALARM_4)[0], timeConstruct(ALARM_4)[1], timeConstruct(ALARM_4)[2], startPlayingAlarm4);
+    Alarm.alarmRepeat(timeConstruct(ALARM_5)[0], timeConstruct(ALARM_5)[1], timeConstruct(ALARM_5)[2], startPlayingAlarm5);
+    Alarm.alarmRepeat(timeConstruct(ALARM_6)[0], timeConstruct(ALARM_6)[1], timeConstruct(ALARM_6)[2], startPlayingAlarm6);
+    Alarm.alarmRepeat(timeConstruct(ALARM_7)[0], timeConstruct(ALARM_7)[1], timeConstruct(ALARM_7)[2], startPlayingAlarm7);
+    Alarm.alarmRepeat(timeConstruct(ALARM_8)[0], timeConstruct(ALARM_8)[1], timeConstruct(ALARM_8)[2], startPlayingAlarm8);
+    Alarm.alarmRepeat(timeConstruct(ALARM_9)[0], timeConstruct(ALARM_9)[1], timeConstruct(ALARM_9)[2], startPlayingAlarm9);
+    Alarm.alarmRepeat(timeConstruct(ALARM_10)[0], timeConstruct(ALARM_10)[1], timeConstruct(ALARM_10)[2], startPlayingAlarm10);
+    Alarm.alarmRepeat(timeConstruct(ALARM_11)[0], timeConstruct(ALARM_11)[1], timeConstruct(ALARM_11)[2], startPlayingAlarm11);
+    Alarm.alarmRepeat(timeConstruct(ALARM_12)[0], timeConstruct(ALARM_12)[1], timeConstruct(ALARM_12)[2], startPlayingAlarm12);
   }
 }
 
