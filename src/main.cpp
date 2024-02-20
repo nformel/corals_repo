@@ -15,13 +15,51 @@
 #include <Entropy.h>
 #include <string>
 #include <array>
-#include <my_defines.h>
 using namespace std;
 AudioPlaySdWav           playWav1;
 AudioOutputI2S           audioOutput;
 AudioConnection          patchCord1(playWav1, 0, audioOutput, 0);
 AudioConnection          patchCord2(playWav1, 1, audioOutput, 1);
 AudioControlSGTL5000     sgtl5000_1;
+
+//STATIC DEFINITIONS
+#define SDCARD_CS_PIN    10
+#define SDCARD_MOSI_PIN  7
+#define SDCARD_SCK_PIN   14
+#define WAIT_AFTER_PLAY_MS 250
+#define SEC_PRE_MIDNIGHT 86399
+#define MIDNIGHT_IN_SEC 86400
+int done_pin = 17;
+int mos_pwr = 3;
+int mos_audio = 2;
+
+//CONFIGURABLE DEFINITIONS (see config file)
+#define ALARM_1 "18:00:00"
+#define ALARM_2 "19:00:00"
+#define ALARM_3 "20:00:00"
+#define ALARM_4 "21:00:00"
+#define ALARM_5 "22:00:00"
+#define ALARM_6 "23:00:00"
+#define ALARM_7 "00:00:00"
+#define ALARM_8 "01:00:00"
+#define ALARM_9 "02:00:00"
+#define ALARM_10 "03:00:00"
+#define ALARM_11 "04:00:00"
+#define ALARM_12 "05:00:00"
+#define SAMPLE_LOCATION "TKP"
+#define BAUDE_RATE 115200
+// Wake Time
+int startH = 17;
+int startM = 50;
+int startS = 0;
+// Play Time (first alarm) [18:0:0 for real]
+int playH = 18;
+int playM = 0;
+int playS = 0;
+// Sleep Time
+int stopH = 6;
+int stopM = 0;
+int stopS = 0;
 
 // declare the sample number as global variable
 int sampleNumber;
@@ -288,7 +326,7 @@ bool mode_play() {
   
   // convert wake time and stop time, now() into seconds after midnight
   int nowSeconds = time2sec(hour(), minute(), second());
-  int startSeconds = time2sec(playH, playM, playS);
+  int startSeconds = time2sec(timeConstruct(ALARM_1)[0], timeConstruct(ALARM_1)[1], timeConstruct(ALARM_1)[2]);
   int stopSeconds = time2sec(stopH, stopM, stopS);
 
   bool rtrn = 0;
@@ -356,6 +394,8 @@ void setup()  {
   // Set up serial for debugging
   Serial.begin(BAUDE_RATE);
 
+  // This is where I would want to read in all of my configurations
+
   //Digital pin configurations
   pinMode(done_pin, OUTPUT);
   pinMode(mos_pwr, OUTPUT);
@@ -410,10 +450,8 @@ void setup()  {
       }    
 
     //Set up alarms
-    // First alarm for play
-    Alarm.alarmRepeat(playH, playM, playS, startPlayingAlarm1); //start playing first file
-    // All other alarms
     // using timeConstruct to insert hr, min and sec into Alarm definitions
+    Alarm.alarmRepeat(timeConstruct(ALARM_1)[0], timeConstruct(ALARM_1)[1], timeConstruct(ALARM_1)[2], startPlayingAlarm1);
     Alarm.alarmRepeat(timeConstruct(ALARM_2)[0], timeConstruct(ALARM_2)[1], timeConstruct(ALARM_2)[2], startPlayingAlarm2); 
     Alarm.alarmRepeat(timeConstruct(ALARM_3)[0], timeConstruct(ALARM_3)[1], timeConstruct(ALARM_3)[2], startPlayingAlarm3); 
     Alarm.alarmRepeat(timeConstruct(ALARM_4)[0], timeConstruct(ALARM_4)[1], timeConstruct(ALARM_4)[2], startPlayingAlarm4);
