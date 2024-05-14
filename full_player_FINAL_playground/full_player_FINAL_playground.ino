@@ -24,8 +24,8 @@ AudioControlSGTL5000     sgtl5000_1;
 
 // USER DEFINED GLOBAL VARIABLES
 // Wake Time
-int startH = 19;
-int startM = 50;
+int startH = 18;
+int startM = 0;
 int startS = 0;
 
 // Play Time (first alarm) [18:0:0 for real]
@@ -79,7 +79,7 @@ void setup()  {
 
   // If state is false, send digital high to done pin (go to sleep)
   if (state == false) {
-    printAndLog("Sleep. (firmware v1)");
+    printAndLog("Sleep.");
     digitalWrite(mos_pwr, LOW);
     digitalWrite(mos_audio, LOW);
     digitalWrite(done_pin, HIGH);
@@ -89,7 +89,7 @@ void setup()  {
 
   // If state is true, start playing file and proceed to main loop
   if (state == true) {
-    printAndLog("Wake up system (firmware v1)");
+    printAndLog("Wake up system");
     digitalWrite(mos_pwr, HIGH);
     digitalWrite(mos_audio, HIGH);
 
@@ -123,17 +123,17 @@ void setup()  {
     // First alarm for play
     Alarm.alarmRepeat(playH, playM, playS, startPlayingAlarm1); //start playing first file
     // All other alarms
-    Alarm.alarmRepeat(21, 0, 0, startPlayingAlarm2); 
-    Alarm.alarmRepeat(22, 0, 0, startPlayingAlarm3); 
-    Alarm.alarmRepeat(23, 0, 0, startPlayingAlarm4); //start playing second file
-    Alarm.alarmRepeat(0, 0, 0, startPlayingAlarm5); //start playing second file
-    Alarm.alarmRepeat(1, 0, 0, startPlayingAlarm6); //start playing second file
-    Alarm.alarmRepeat(2, 0, 0, startPlayingAlarm7); //start playing second file
-    Alarm.alarmRepeat(3, 0, 0, startPlayingAlarm8); //start playing second file
-    Alarm.alarmRepeat(4, 0, 0, startPlayingAlarm9); //start playing second file
-    Alarm.alarmRepeat(5, 0, 0, startPlayingAlarm10); //start playing second file
-    Alarm.alarmRepeat(6, 0, 0, startPlayingAlarm11); //start playing second file
-    Alarm.alarmRepeat(7, 0, 0, startPlayingAlarm12); //start playing second file
+    Alarm.alarmRepeat(18, 25, 0, startPlayingAlarm2); 
+    Alarm.alarmRepeat(18, 25, 10, startPlayingAlarm3); 
+    Alarm.alarmRepeat(18, 25, 20, startPlayingAlarm4); //start playing second file
+    Alarm.alarmRepeat(18, 25, 30, startPlayingAlarm5); //start playing second file
+    Alarm.alarmRepeat(18, 25, 40, startPlayingAlarm6); //start playing second file
+    Alarm.alarmRepeat(18, 25, 50, startPlayingAlarm7); //start playing second file
+    Alarm.alarmRepeat(18, 26, 0, startPlayingAlarm8); //start playing second file
+    Alarm.alarmRepeat(18, 26, 10, startPlayingAlarm9); //start playing second file
+    Alarm.alarmRepeat(18, 26, 20, startPlayingAlarm10); //start playing second file
+    Alarm.alarmRepeat(18, 26, 30, startPlayingAlarm11); //start playing second file
+    Alarm.alarmRepeat(18, 26, 40, startPlayingAlarm12); //start playing second file
   }
 }
 
@@ -153,7 +153,7 @@ void loop() {
 void startPlayingAlarm1() {
   printAndLog("Alarm1");
   stopFile();
-  delay(250);  
+  delay(250);
   if (sampleNumber == 1){
     playFile("18TKP1.WAV");  // filenames are always uppercase 8.3 format
     delay(250);
@@ -180,7 +180,7 @@ void startPlayingAlarm1() {
 void startPlayingAlarm2() {
   printAndLog("Alarm2");
   stopFile();
-  delay(250);  
+  delay(250);
   if (sampleNumber == 1){
     playFile("19TKP1.WAV");
     delay(250);
@@ -207,7 +207,7 @@ void startPlayingAlarm2() {
 void startPlayingAlarm3() {
   printAndLog("Alarm3");
   stopFile();
-  delay(250);  
+  delay(250);
   if (sampleNumber == 1){
     playFile("20TKP1.WAV");
     delay(250);
@@ -234,7 +234,7 @@ void startPlayingAlarm3() {
 void startPlayingAlarm4() {
   printAndLog("Alarm4");
   stopFile();
-  delay(250);  
+  delay(250);
   if (sampleNumber == 1){
     playFile("21TKP1.WAV");
     delay(250);
@@ -261,7 +261,7 @@ void startPlayingAlarm4() {
 void startPlayingAlarm5() {
   printAndLog("Alarm5");
   stopFile();
-  delay(250);  
+  delay(250);
   if (sampleNumber == 1){
     playFile("22TKP1.WAV");
     delay(250);
@@ -288,7 +288,7 @@ void startPlayingAlarm5() {
 void startPlayingAlarm6() {
   printAndLog("Alarm6");
   stopFile();
-  delay(250);  
+  delay(250);
   if (sampleNumber == 1){
     playFile("23TKP1.WAV");
     delay(250);
@@ -315,7 +315,7 @@ void startPlayingAlarm6() {
 void startPlayingAlarm7() {
   printAndLog("Alarm7");
   stopFile();
-  delay(250);  
+  delay(250);
   if (sampleNumber == 1){
     playFile("00TKP1.WAV");
     delay(250);
@@ -342,7 +342,7 @@ void startPlayingAlarm7() {
 void startPlayingAlarm8() {
   printAndLog("Alarm8");
   stopFile();
-  delay(250);  
+  delay(250);
   if (sampleNumber == 1){
     playFile("01TKP1.WAV");
     delay(250);
@@ -369,7 +369,7 @@ void startPlayingAlarm8() {
 void startPlayingAlarm9() {
   printAndLog("Alarm9");
   stopFile();
-  delay(250);  
+  delay(250);
   if (sampleNumber == 1){
     playFile("02TKP1.WAV");
     delay(250);
@@ -396,7 +396,7 @@ void startPlayingAlarm9() {
 void startPlayingAlarm10() {
   printAndLog("Alarm10");
   stopFile();
-  delay(250);  
+  delay(250);
   if (sampleNumber == 1){
     playFile("03TKP1.WAV");
     delay(250);
@@ -448,9 +448,9 @@ void startPlayingAlarm11() {
 }
 // Audio file 12
 void startPlayingAlarm12() {
-  printAndLog("Alarm12");
   stopFile();
   delay(250);  
+  printAndLog("Alarm12");
   if (sampleNumber == 1){
     playFile("05TKP1.WAV");
     delay(250);
@@ -671,7 +671,7 @@ void fault_check(){
   
 
   //Changed this to go from 8pm to 8am for testing!
-    if (hour() == 20){
+    if (hour() == 18){
       playFile("18TKP1.WAV");  // filenames are always uppercase 8.3 format 
       delay(250); // wait for library to parse WAV info
     }

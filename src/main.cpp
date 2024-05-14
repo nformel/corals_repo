@@ -34,9 +34,9 @@ int mos_pwr = 3;
 int mos_audio = 2;
 
 //CONFIGURABLE DEFINITIONS (see config file)
-#define ALARM_1 "18:00:00"
-#define ALARM_2 "19:00:00"
-#define ALARM_3 "20:00:00"
+#define ALARM_1 "16:42:00"
+#define ALARM_2 "16:43:00"
+#define ALARM_3 "16:44:00"
 #define ALARM_4 "21:00:00"
 #define ALARM_5 "22:00:00"
 #define ALARM_6 "23:00:00"
@@ -49,15 +49,15 @@ int mos_audio = 2;
 #define SAMPLE_LOCATION "TKP"
 #define BAUDE_RATE 115200
 // Wake Time
-int startH = 17;
-int startM = 50;
+int startH = 16;
+int startM = 0;
 int startS = 0;
 // Play Time (first alarm) [18:0:0 for real]
-int playH = 18;
-int playM = 0;
+int playH = 16;
+int playM = 42;
 int playS = 0;
 // Sleep Time
-int stopH = 6;
+int stopH = 23;
 int stopM = 0;
 int stopS = 0;
 
@@ -441,6 +441,9 @@ void setup()  {
     //update the value of sampleNumber to be a random value between 1 and 4 (inclusive)
     Entropy.Initialize();
     sampleNumber = Entropy.random(1,4);
+
+    //FOR TESTING
+    sampleNumber = 3;
 
     if (sampleNumber <= 4 ){
       printAndLog(customAdd("sampleNumber =", sampleNumber));
