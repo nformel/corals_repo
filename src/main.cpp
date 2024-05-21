@@ -1,6 +1,5 @@
 //This code plays the loaded wav files on a schedule AND
 //will tell the TPL510 that it's done when Sound Off is trigered
-//final version as of 10/18/22 4:47pm
 
 //LIBRARIES
 #include <Arduino.h>
@@ -34,31 +33,46 @@ int mos_pwr = 3;
 int mos_audio = 2;
 
 //CONFIGURABLE DEFINITIONS (see config file)
-#define ALARM_1 "16:42:00"
-#define ALARM_2 "16:43:00"
-#define ALARM_3 "16:44:00"
-#define ALARM_4 "21:00:00"
-#define ALARM_5 "22:00:00"
-#define ALARM_6 "23:00:00"
-#define ALARM_7 "00:00:00"
-#define ALARM_8 "01:00:00"
-#define ALARM_9 "02:00:00"
-#define ALARM_10 "03:00:00"
-#define ALARM_11 "04:00:00"
-#define ALARM_12 "05:00:00"
+#define ALARM_1 "15:14:20"
+#define ALARM_2 "15:14:30"
+#define ALARM_3 "15:14:40"
+#define ALARM_4 "15:06:00"
+#define ALARM_5 "15:06:20"
+#define ALARM_6 "15:06:40"
+#define ALARM_7 "15:07:00"
+#define ALARM_8 "15:07:20"
+#define ALARM_9 "15:07:40"
+#define ALARM_10 "15:08:00"
+#define ALARM_11 "15:08:20"
+#define ALARM_12 "15:08:40"
+
+#define FILE_BASE_1 "18TKP"
+#define FILE_BASE_2 "19TKP"
+#define FILE_BASE_3 "20TKP"
+#define FILE_BASE_4 "21TKP"
+#define FILE_BASE_5 "22TKP"
+#define FILE_BASE_6 "23TKP"
+#define FILE_BASE_7 "00TKP"
+#define FILE_BASE_8 "01TKP"
+#define FILE_BASE_9 "02TKP"
+#define FILE_BASE_10 "03TKP"
+#define FILE_BASE_11 "04TKP"
+#define FILE_BASE_12 "05TKP"
+
+
 #define SAMPLE_LOCATION "TKP"
 #define BAUDE_RATE 115200
 // Wake Time
-int startH = 16;
+int startH = 12;
 int startM = 0;
 int startS = 0;
 // Play Time (first alarm) [18:0:0 for real]
-int playH = 16;
-int playM = 42;
+int playH = 14;
+int playM = 9;
 int playS = 0;
 // Sleep Time
-int stopH = 23;
-int stopM = 0;
+int stopH = 16;
+int stopM = 59;
 int stopS = 0;
 
 // declare the sample number as global variable
@@ -105,22 +119,22 @@ String present(){
 
 // LOGGING AND PRINTING
 //Log input to SD Card
-void logSD(const char string[]) {
+void logSD(std::string string) {
   myFile = SD.open("LOG.txt", FILE_WRITE);
   // if the file opened okay, write to it:
   if (myFile) {
     myFile.print(present());
     myFile.print("  ");
-    myFile.println(string);
+    myFile.println(string.c_str());
     myFile.close();
     // if the file didn't open, print an error:
   } else {
     Serial.println("error opening file");
   }
 }
-// Wrap logging and serial print into a single function
-void printAndLog(const char string[]){
-  Serial.println(string);
+// Wrap logging and serial print into a single function (now takes a std string and converts to char *)
+void printAndLog(std::string string){
+  Serial.println(string.c_str());
   logSD(string);
   }
 
@@ -131,34 +145,26 @@ const char * customAdd(std::string string, int b){
     return result;  
 }
 
-// construct playback file name from an hour + sample number (e.g. 18TKP1.WAV)
-const char * makeFileName(int hr, int samp){
-    std::string hour = "00";
-    if (hr < 10){
-      hour = "0" + std::to_string(hr);
-    }
-    else {
-      hour = std::to_string(hr);
-    }
-    
-    std::string concat = hour + SAMPLE_LOCATION + std::to_string(samp) + ".WAV";
-    const char * result = concat.c_str(); //convert string to pointer
-    return result;  
+// construct playback file name from an hour + sample number (e.g. 18TKP1.wav) as a string
+std::string makeFileNameString(std::string file_base, int samp){
+    std::string concat = file_base + std::to_string(samp) + ".wav";
+    //const char * result = concat.c_str(); //convert string to pointer
+    return concat;  
 }
 
 // WAV FILE PLAYER AND TPL5110 HELPER FUNCTIONS
 // playFile function from WAV file player
-void playFile(const char string[]) {
+void playFile(std::string filename) { //const char string[]
   printAndLog("Playing file:");
-  printAndLog(string);
-  const char *filename = string;
-  playWav1.play(filename);
+  printAndLog(filename);
+  playWav1.play(filename.c_str());
   delay(10);
 }
 // Turn off sound
 void stopFile() {
-  printAndLog("Stopping audio");
+  printAndLog("Stopping audio"); //ths goes at end of stopFile block. putting here for testing.
   playWav1.stop();
+  delay(250);
 }
 //TPL5110 done
 void doneSignal() {
@@ -168,7 +174,7 @@ void doneSignal() {
   digitalWrite(done_pin, LOW);
 }
 
-//Function to extract integers for strings of form "hh:mm:ss"
+//Function to extract integers from strings of form "hh:mm:ss"
 std::array<int,3> timeConstruct(std::string timeString){
   std::array<int,3> timeInts;
   std::string hrString = timeString.substr(0,2);
@@ -184,80 +190,86 @@ std::array<int,3> timeConstruct(std::string timeString){
 // ALARM FUNCTIONS
 // Audio file 1
 void startPlayingAlarm1() {
+  stopFile();
   printAndLog("Alarm1");
-  playFile(makeFileName(timeConstruct(ALARM_1)[0], sampleNumber)); //make file name from alarm hour and sample number.
+  playFile(makeFileNameString(FILE_BASE_1, sampleNumber)); //make file name from alarm hour and sample number.
   delay(WAIT_AFTER_PLAY_MS);
-  /* Got rid of this block, perhaps could put it back in wth a try block. But fault checker should do the same thing..  
-  else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("18TKP1.WAV");
-  }
-  */
 }
 // Audio file 2
 void startPlayingAlarm2() {
+  stopFile();
   printAndLog("Alarm2");
-  playFile(makeFileName(timeConstruct(ALARM_2)[0], sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_2, sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 3
 void startPlayingAlarm3() {
+  stopFile();
   printAndLog("Alarm3");
-  playFile(makeFileName(timeConstruct(ALARM_3)[0], sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_3, sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 4
 void startPlayingAlarm4() {
+  stopFile();
   printAndLog("Alarm4");
-  playFile(makeFileName(timeConstruct(ALARM_4)[0], sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_4, sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 5
 void startPlayingAlarm5() {
+  stopFile();
   printAndLog("Alarm5");
-  playFile(makeFileName(timeConstruct(ALARM_5)[0], sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_5, sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 6
 void startPlayingAlarm6() {
+  stopFile();
   printAndLog("Alarm6");
-  playFile(makeFileName(timeConstruct(ALARM_6)[0], sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_6, sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 7
 void startPlayingAlarm7() {
+  stopFile();
   printAndLog("Alarm7");
-  playFile(makeFileName(timeConstruct(ALARM_7)[0], sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_7, sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 8
 void startPlayingAlarm8() {
+  stopFile();
   printAndLog("Alarm8");
-  playFile(makeFileName(timeConstruct(ALARM_8)[0], sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_8, sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 9
 void startPlayingAlarm9() {
+  stopFile();
   printAndLog("Alarm9");
-  playFile(makeFileName(timeConstruct(ALARM_9)[0], sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_9, sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 10
 void startPlayingAlarm10() {
+  stopFile();  
   printAndLog("Alarm10");
-  playFile(makeFileName(timeConstruct(ALARM_10)[0], sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_10, sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 11
 void startPlayingAlarm11() {
+  stopFile();
   printAndLog("Alarm11");
-  playFile(makeFileName(timeConstruct(ALARM_11)[0], sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_11, sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 12
 void startPlayingAlarm12() {
+  stopFile();
   printAndLog("Alarm12");
-  playFile(makeFileName(timeConstruct(ALARM_12)[0], sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_12, sampleNumber));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -321,7 +333,7 @@ bool mode_on() {
   return rtrn;
 }
 
-//function to determine whether system should be on or off upon wakeup
+//function to determine whether system should be playing or not upon wakeup
 bool mode_play() {
   
   // convert wake time and stop time, now() into seconds after midnight
@@ -381,7 +393,105 @@ void fault_check(){
   bool mode_play_result = mode_play();
   if (mode_play_result == 1 && playWav1.isPlaying() == false){ 
   printAndLog("Fault check: play default hour track");
+  //Changed this to go for 24 hrs
+    if (hour() == 0){
+      playFile("00TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 1){
+      playFile("01TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 2){
+      playFile("02TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 3){
+      playFile("03TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 4){
+      playFile("04TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 5){
+      playFile("05TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 6){
+      playFile("05TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 7){
+      playFile("05TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 8){
+      playFile("05TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 9){
+      playFile("05TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 10){
+      playFile("05TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 11){
+      playFile("05TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 12){
+      playFile("05TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 13){
+      playFile("05TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 14){
+      playFile("05TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 15){
+      playFile("05TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 16){
+      playFile("05TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 17){
+      playFile("05TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 18){
+      playFile("18TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 19){
+      playFile("19TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 20){
+      playFile("20TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 21){
+      playFile("21TKP1.wav");
+      delay(250);
+    }     
+    else if (hour() == 22){
+      playFile("22TKP1.wav");
+      delay(250);
+    }
+    else if (hour() == 23){
+      playFile("23TKP1.wav");
+      delay(250);
+    }
   }
+
   else { //Serial.println("No, I'm stuck here"); // Do nothing, system is on but waiting to play. No issue.  
   }
   //Serial.println("I promise, it's here that I am stuck");
@@ -443,7 +553,8 @@ void setup()  {
     sampleNumber = Entropy.random(1,4);
 
     //FOR TESTING
-    sampleNumber = 3;
+    printAndLog("hard coding sample number to be 1");
+    sampleNumber = 1;
 
     if (sampleNumber <= 4 ){
       printAndLog(customAdd("sampleNumber =", sampleNumber));
@@ -473,4 +584,17 @@ void loop() {
   digitalClockDisplay();
   fault_check(); //If wavfile isn't playing, force on based on time
   Alarm.delay(1000); // wait one second between clock display
+
+  //space for testing functions
+  /*
+  Serial.println("makeFileName(FILE_BASE_1, sampleNumber)");
+  Serial.println(makeFileName(FILE_BASE_1, sampleNumber));
+  Serial.println("Print and Log Filename");
+  printAndLog("test print and log");
+  Serial.println("playFile");
+  playFile(makeFileNameString(FILE_BASE_1, sampleNumber));
+  delay(10000);
+  stopFile();
+  */
+
 }
