@@ -47,6 +47,17 @@ int mos_audio = 2;
 #define ALARM_12 "11:35:30"
 #define ALARM_13 "11:35:35"
 #define ALARM_14 "11:35:40"
+#define ALARM_15 "16:38:10"
+#define ALARM_16 "16:38:15"
+#define ALARM_17 "16:38:20"
+#define ALARM_18 "16:38:25"
+#define ALARM_19 "16:38:30"
+#define ALARM_20 "16:38:35"
+#define ALARM_21 "16:38:40"
+#define ALARM_22 "16:38:45"
+#define ALARM_23 "16:38:50"
+#define ALARM_24 "11:35:30"
+
 
 #define FILE_BASE_1 "18TKP"
 #define FILE_BASE_2 "19TKP"
@@ -62,6 +73,16 @@ int mos_audio = 2;
 #define FILE_BASE_12 "05TKP"
 #define FILE_BASE_13 "05TKP"
 #define FILE_BASE_14 "05TKP"
+#define FILE_BASE_15 "23TKP"
+#define FILE_BASE_16 "00TKP"
+#define FILE_BASE_17 "01TKP"
+#define FILE_BASE_18 "02TKP"
+#define FILE_BASE_19 "03TKP"
+#define FILE_BASE_20 "04TKP"
+#define FILE_BASE_21 "05TKP"
+#define FILE_BASE_22 "05TKP"
+#define FILE_BASE_23 "05TKP"
+#define FILE_BASE_24 "05TKP"
 
 #define SAMPLE_LOCATION "TKP"
 #define BAUDE_RATE 115200
@@ -292,125 +313,90 @@ void startPlayingAlarm14() {
   delay(WAIT_AFTER_PLAY_MS);
 }
 
-// Turn off system
-// due to limit on number of alarms we can make, I am not using this alarm. 
-// instead, using the fault checker to do that. 
-void stopPlayingAlarm() {
-  printAndLog("Alarm: turn off system");
-  digitalWrite(mos_pwr, LOW);
-  digitalWrite(mos_audio, LOW);
+// Audio file 15
+void startPlayingAlarm15() {
   stopFile();
-  doneSignal();
+  printAndLog("Alarm15");
+  playFile(makeFileNameString(FILE_BASE_15, sampleNumber));
+  delay(WAIT_AFTER_PLAY_MS);
 }
 
-//TIME FUNCTIONS AND MODE DETERMINATION
-//Convert hours minutes and seconds to seconds after midnight
-int time2sec (int h, int m, int s) {
-  int timeSec = s + m * 60 + h * 3600;
-  return timeSec;
-}
-//function to determine whether system should be on or off upon wakeup
-bool mode_on() {
-  
-  // convert wake time and stop time, now() into seconds after midnight
-  int nowSeconds = time2sec(hour(), minute(), second());
-  int startSeconds = time2sec(startH, startM, startS);
-  int stopSeconds = time2sec(stopH, stopM, stopS);
-  bool rtrn = 0;
-  
-  if (startSeconds < stopSeconds) {
-    //Serial.println("Play interval does not include midnight");
-    if (0 <= nowSeconds && nowSeconds < startSeconds) {
-      //Serial.println("Case 1");
-      rtrn = 0;
-    }
-    else if (startSeconds <= nowSeconds && nowSeconds < stopSeconds) {
-      //Serial.println("Case 2");
-      rtrn = 1;
-    }
-    else if (stopSeconds <= nowSeconds && nowSeconds < SEC_PRE_MIDNIGHT) {
-      //Serial.println("Case 3");
-      rtrn = 0;
-    }
-  }
-  else if (startSeconds > stopSeconds) {
-    //Serial.println("Play interval includes midnight");
-    if (0 <= nowSeconds && nowSeconds < stopSeconds) {
-      //Serial.println("Case 1");
-      rtrn = 1;
-    }
-    else if (stopSeconds <= nowSeconds && nowSeconds < startSeconds) {
-      //Serial.println("Case 2");
-      rtrn = 0;
-    }
-    else if (startSeconds <= nowSeconds && nowSeconds <= MIDNIGHT_IN_SEC) {
-      //Serial.println("Case 3");
-      rtrn = 1;
-    }
-  }
-
-  return rtrn;
+// Audio file 16
+void startPlayingAlarm16() {
+  stopFile();
+  printAndLog("Alarm16");
+  playFile(makeFileNameString(FILE_BASE_16, sampleNumber));
+  delay(WAIT_AFTER_PLAY_MS);
 }
 
-//function to determine whether system should be playing or not upon wakeup
-bool mode_play() {
-  
-  // convert wake time and stop time, now() into seconds after midnight
-  int nowSeconds = time2sec(hour(), minute(), second());
-  int startSeconds = time2sec(timeConstruct(ALARM_1)[0], timeConstruct(ALARM_1)[1], timeConstruct(ALARM_1)[2]);
-  int stopSeconds = time2sec(stopH, stopM, stopS);
+// Audio file 17
+void startPlayingAlarm17() {
+  stopFile();
+  printAndLog("Alarm17");
+  playFile(makeFileNameString(FILE_BASE_17, sampleNumber));
+  delay(WAIT_AFTER_PLAY_MS);
+}
 
-  bool rtrn = 0;
-  
-  if (startSeconds < stopSeconds) {
-    //Serial.println("Play interval does not include midnight");
-    if (0 <= nowSeconds && nowSeconds < startSeconds) {
-      //Serial.println("Case 1");
-      rtrn = 0;
-    }
-    else if (startSeconds <= nowSeconds && nowSeconds < stopSeconds) {
-      //Serial.println("Case 2");
-      rtrn = 1;
-    }
-    else if (stopSeconds <= nowSeconds && nowSeconds < SEC_PRE_MIDNIGHT) {
-      //Serial.println("Case 3");
-      rtrn = 0;
-    }
-  }
-  else if (startSeconds > stopSeconds) {
-    //Serial.println("Play interval includes midnight");
-    if (0 <= nowSeconds && nowSeconds < stopSeconds) {
-      //Serial.println("Case 1");
-      rtrn = 1;
-    }
-    else if (stopSeconds <= nowSeconds && nowSeconds < startSeconds) {
-      //Serial.println("Case 2");
-      rtrn = 0;
-    }
-    else if (startSeconds <= nowSeconds && nowSeconds <= MIDNIGHT_IN_SEC) {
-      //Serial.println("Case 3");
-      rtrn = 1;
-    }
-  }
+// Audio file 18
+void startPlayingAlarm18() {
+  stopFile();
+  printAndLog("Alarm18");
+  playFile(makeFileNameString(FILE_BASE_18, sampleNumber));
+  delay(WAIT_AFTER_PLAY_MS);
+}
 
-  return rtrn;
+// Audio file 19
+void startPlayingAlarm19() {
+  stopFile();
+  printAndLog("Alarm19");
+  playFile(makeFileNameString(FILE_BASE_19, sampleNumber));
+  delay(WAIT_AFTER_PLAY_MS);
+}
+
+// Audio file 20
+void startPlayingAlarm20() {
+  stopFile();
+  printAndLog("Alarm20");
+  playFile(makeFileNameString(FILE_BASE_20, sampleNumber));
+  delay(WAIT_AFTER_PLAY_MS);
+}
+
+// Audio file 21
+void startPlayingAlarm21() {
+  stopFile();
+  printAndLog("Alarm21");
+  playFile(makeFileNameString(FILE_BASE_21, sampleNumber));
+  delay(WAIT_AFTER_PLAY_MS);
+}
+
+// Audio file 22
+void startPlayingAlarm22() {
+  stopFile();
+  printAndLog("Alarm22");
+  playFile(makeFileNameString(FILE_BASE_22, sampleNumber));
+  delay(WAIT_AFTER_PLAY_MS);
+}
+
+// Audio file 23
+void startPlayingAlarm23() {
+  stopFile();
+  printAndLog("Alarm23");
+  playFile(makeFileNameString(FILE_BASE_23, sampleNumber));
+  delay(WAIT_AFTER_PLAY_MS);
+}
+
+// Audio file 24
+void startPlayingAlarm24() {
+  stopFile();
+  printAndLog("Alarm24");
+  playFile(makeFileNameString(FILE_BASE_24, sampleNumber));
+  delay(WAIT_AFTER_PLAY_MS);
 }
 
 // FAULT CHECK
 void fault_check(){
-  bool mode_on_result = mode_on();  
-  if (mode_on_result == 0){
-    printAndLog("Fault check: Shutdown system.");
-    playWav1.stop();
-    digitalWrite(mos_pwr, LOW);
-    digitalWrite(mos_audio, LOW);
-    digitalWrite(done_pin, HIGH);
-    delay(1000);
-    digitalWrite(done_pin, LOW);
-    }
-    
-  bool mode_play_result = mode_play();
-  if (mode_play_result == 1 && playWav1.isPlaying() == false){ 
+  // if no audio is playing, start the appropriate default track
+  if (playWav1.isPlaying() == false){ 
   printAndLog("Fault check: play default hour track");
   
   //Changed this to go for 24 hrs
@@ -512,7 +498,7 @@ void fault_check(){
     }
   }
 
-  else { //Serial.println("No, I'm stuck here"); // Do nothing, system is on but waiting to play. No issue.  
+  else { //Serial.println("No, I'm stuck here"); // Do nothing, system is on and playing. No issue.  
   }
   //Serial.println("I promise, it's here that I am stuck");
 }
@@ -547,67 +533,59 @@ void setup()  {
 
   //check digital clock once in setup
   digitalClockDisplay();
-  
-  // Determine if teensy should be on
-  bool state = mode_on();
 
-  // Testing 24Hourbranch
+  // Turn on System
+  printAndLog("Wake up system");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
 
-  // If state is false, send digital high to done pin (go to sleep)
-  if (state == false) {
-    printAndLog("Sleep.");
-    digitalWrite(mos_pwr, LOW);
-    digitalWrite(mos_audio, LOW);
-    digitalWrite(done_pin, HIGH);
-    delay(1000);
-    digitalWrite(done_pin, LOW);
-  }
+  // WAV Player Setup
+  AudioMemory(8);
+  sgtl5000_1.enable();
+  sgtl5000_1.volume(0.75);
 
-  // If state is true, start playing file and proceed to main loop
-  if (state == true) {
-    printAndLog("Wake up system");
-    digitalWrite(mos_pwr, HIGH);
-    digitalWrite(mos_audio, HIGH);
+  //update the value of sampleNumber to be a random value between 1 and 4 (inclusive)
+  Entropy.Initialize();
+  sampleNumber = Entropy.random(1,4);
 
-    // WAV Player Setup
-    AudioMemory(8);
-    sgtl5000_1.enable();
-    sgtl5000_1.volume(0.75);
+  //FOR TESTING
+  printAndLog("hard coding sample number to be 1");
+  sampleNumber = 1;
 
-    //update the value of sampleNumber to be a random value between 1 and 4 (inclusive)
-    Entropy.Initialize();
-    sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }    
 
-    //FOR TESTING
-    printAndLog("hard coding sample number to be 1");
-    sampleNumber = 1;
+  //Set up alarms
+  // using timeConstruct to insert hr, min and sec into Alarm definitions
+  Alarm.alarmRepeat(timeConstruct(ALARM_1)[0], timeConstruct(ALARM_1)[1], timeConstruct(ALARM_1)[2], startPlayingAlarm1);
+  Alarm.alarmRepeat(timeConstruct(ALARM_2)[0], timeConstruct(ALARM_2)[1], timeConstruct(ALARM_2)[2], startPlayingAlarm2); 
+  Alarm.alarmRepeat(timeConstruct(ALARM_3)[0], timeConstruct(ALARM_3)[1], timeConstruct(ALARM_3)[2], startPlayingAlarm3); 
+  Alarm.alarmRepeat(timeConstruct(ALARM_4)[0], timeConstruct(ALARM_4)[1], timeConstruct(ALARM_4)[2], startPlayingAlarm4);
+  Alarm.alarmRepeat(timeConstruct(ALARM_5)[0], timeConstruct(ALARM_5)[1], timeConstruct(ALARM_5)[2], startPlayingAlarm5);
+  Alarm.alarmRepeat(timeConstruct(ALARM_6)[0], timeConstruct(ALARM_6)[1], timeConstruct(ALARM_6)[2], startPlayingAlarm6);
+  Alarm.alarmRepeat(timeConstruct(ALARM_7)[0], timeConstruct(ALARM_7)[1], timeConstruct(ALARM_7)[2], startPlayingAlarm7);
+  Alarm.alarmRepeat(timeConstruct(ALARM_8)[0], timeConstruct(ALARM_8)[1], timeConstruct(ALARM_8)[2], startPlayingAlarm8);
+  Alarm.alarmRepeat(timeConstruct(ALARM_9)[0], timeConstruct(ALARM_9)[1], timeConstruct(ALARM_9)[2], startPlayingAlarm9);
+  Alarm.alarmRepeat(timeConstruct(ALARM_10)[0], timeConstruct(ALARM_10)[1], timeConstruct(ALARM_10)[2], startPlayingAlarm10);
+  Alarm.alarmRepeat(timeConstruct(ALARM_11)[0], timeConstruct(ALARM_11)[1], timeConstruct(ALARM_11)[2], startPlayingAlarm11);
+  Alarm.alarmRepeat(timeConstruct(ALARM_12)[0], timeConstruct(ALARM_12)[1], timeConstruct(ALARM_12)[2], startPlayingAlarm12);
+  Alarm.alarmRepeat(timeConstruct(ALARM_13)[0], timeConstruct(ALARM_13)[1], timeConstruct(ALARM_13)[2], startPlayingAlarm13);
+  Alarm.alarmRepeat(timeConstruct(ALARM_14)[0], timeConstruct(ALARM_14)[1], timeConstruct(ALARM_14)[2], startPlayingAlarm14);
+  Alarm.alarmRepeat(timeConstruct(ALARM_15)[0], timeConstruct(ALARM_15)[1], timeConstruct(ALARM_15)[2], startPlayingAlarm15);
+  Alarm.alarmRepeat(timeConstruct(ALARM_16)[0], timeConstruct(ALARM_16)[1], timeConstruct(ALARM_16)[2], startPlayingAlarm16);
+  Alarm.alarmRepeat(timeConstruct(ALARM_17)[0], timeConstruct(ALARM_17)[1], timeConstruct(ALARM_17)[2], startPlayingAlarm17);
+  Alarm.alarmRepeat(timeConstruct(ALARM_18)[0], timeConstruct(ALARM_18)[1], timeConstruct(ALARM_18)[2], startPlayingAlarm18);
+  Alarm.alarmRepeat(timeConstruct(ALARM_19)[0], timeConstruct(ALARM_19)[1], timeConstruct(ALARM_19)[2], startPlayingAlarm19);
+  Alarm.alarmRepeat(timeConstruct(ALARM_20)[0], timeConstruct(ALARM_20)[1], timeConstruct(ALARM_20)[2], startPlayingAlarm20);
+  Alarm.alarmRepeat(timeConstruct(ALARM_21)[0], timeConstruct(ALARM_21)[1], timeConstruct(ALARM_21)[2], startPlayingAlarm21);
+  Alarm.alarmRepeat(timeConstruct(ALARM_22)[0], timeConstruct(ALARM_22)[1], timeConstruct(ALARM_22)[2], startPlayingAlarm22);
+  Alarm.alarmRepeat(timeConstruct(ALARM_23)[0], timeConstruct(ALARM_23)[1], timeConstruct(ALARM_23)[2], startPlayingAlarm23);
+  Alarm.alarmRepeat(timeConstruct(ALARM_24)[0], timeConstruct(ALARM_24)[1], timeConstruct(ALARM_24)[2], startPlayingAlarm24);
 
-    if (sampleNumber <= 4 ){
-      printAndLog(customAdd("sampleNumber =", sampleNumber));
-      }
-    else{
-      printAndLog("sampleNumber out of range");
-      }    
-
-    //Set up alarms
-    // using timeConstruct to insert hr, min and sec into Alarm definitions
-    Alarm.alarmRepeat(timeConstruct(ALARM_1)[0], timeConstruct(ALARM_1)[1], timeConstruct(ALARM_1)[2], startPlayingAlarm1);
-    Alarm.alarmRepeat(timeConstruct(ALARM_2)[0], timeConstruct(ALARM_2)[1], timeConstruct(ALARM_2)[2], startPlayingAlarm2); 
-    Alarm.alarmRepeat(timeConstruct(ALARM_3)[0], timeConstruct(ALARM_3)[1], timeConstruct(ALARM_3)[2], startPlayingAlarm3); 
-    Alarm.alarmRepeat(timeConstruct(ALARM_4)[0], timeConstruct(ALARM_4)[1], timeConstruct(ALARM_4)[2], startPlayingAlarm4);
-    Alarm.alarmRepeat(timeConstruct(ALARM_5)[0], timeConstruct(ALARM_5)[1], timeConstruct(ALARM_5)[2], startPlayingAlarm5);
-    Alarm.alarmRepeat(timeConstruct(ALARM_6)[0], timeConstruct(ALARM_6)[1], timeConstruct(ALARM_6)[2], startPlayingAlarm6);
-    Alarm.alarmRepeat(timeConstruct(ALARM_7)[0], timeConstruct(ALARM_7)[1], timeConstruct(ALARM_7)[2], startPlayingAlarm7);
-    Alarm.alarmRepeat(timeConstruct(ALARM_8)[0], timeConstruct(ALARM_8)[1], timeConstruct(ALARM_8)[2], startPlayingAlarm8);
-    Alarm.alarmRepeat(timeConstruct(ALARM_9)[0], timeConstruct(ALARM_9)[1], timeConstruct(ALARM_9)[2], startPlayingAlarm9);
-    Alarm.alarmRepeat(timeConstruct(ALARM_10)[0], timeConstruct(ALARM_10)[1], timeConstruct(ALARM_10)[2], startPlayingAlarm10);
-    Alarm.alarmRepeat(timeConstruct(ALARM_11)[0], timeConstruct(ALARM_11)[1], timeConstruct(ALARM_11)[2], startPlayingAlarm11);
-    Alarm.alarmRepeat(timeConstruct(ALARM_12)[0], timeConstruct(ALARM_12)[1], timeConstruct(ALARM_12)[2], startPlayingAlarm12);
-    Alarm.alarmRepeat(timeConstruct(ALARM_13)[0], timeConstruct(ALARM_13)[1], timeConstruct(ALARM_13)[2], startPlayingAlarm13);
-    Alarm.alarmRepeat(timeConstruct(ALARM_14)[0], timeConstruct(ALARM_14)[1], timeConstruct(ALARM_14)[2], startPlayingAlarm14);
-
-
-  }
 }
 
 void loop() {
