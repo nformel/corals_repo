@@ -1,7 +1,8 @@
 //This code plays the loaded wav files on a schedule AND
 //will tell the TPL510 that it's done when Sound Off is trigered
 //final version as of 10/18/22 4:47pm
-//shifting timing to be 5pm to 8am (05/12/24)
+//changing to play for 24 hours a day with a reset at 9 am
+//should only be off from 8:49 to 8:50
 
 //LIBRARIES
 #include <TimeLib.h>
@@ -24,18 +25,18 @@ AudioControlSGTL5000     sgtl5000_1;
 
 // USER DEFINED GLOBAL VARIABLES
 // Wake Time
-int startH = 18;
-int startM = 0;
+int startH = 8;
+int startM = 50;
 int startS = 0;
 
 // Play Time (first alarm) [18:0:0 for real]
-int playH = 20;
+int playH = 9;
 int playM = 0;
 int playS = 0;
 
 // Sleep Time
 int stopH = 8;
-int stopM = 0;
+int stopM = 49;
 int stopS = 0;
 
 // digital pin declarations
@@ -116,24 +117,24 @@ void setup()  {
     else {printAndLog("sampleNumber is out of range.");
     }
 
-    printAndLog("jk, hardcoding sampeleNumber = 1");
-    sampleNumber = 1;
+    printAndLog("jk, hardcoding sampeleNumber = 4");
+    sampleNumber = 4;
 
     //Set up alarms
     // First alarm for play
     Alarm.alarmRepeat(playH, playM, playS, startPlayingAlarm1); //start playing first file
     // All other alarms
-    Alarm.alarmRepeat(18, 25, 0, startPlayingAlarm2); 
-    Alarm.alarmRepeat(18, 25, 10, startPlayingAlarm3); 
-    Alarm.alarmRepeat(18, 25, 20, startPlayingAlarm4); //start playing second file
-    Alarm.alarmRepeat(18, 25, 30, startPlayingAlarm5); //start playing second file
-    Alarm.alarmRepeat(18, 25, 40, startPlayingAlarm6); //start playing second file
-    Alarm.alarmRepeat(18, 25, 50, startPlayingAlarm7); //start playing second file
-    Alarm.alarmRepeat(18, 26, 0, startPlayingAlarm8); //start playing second file
-    Alarm.alarmRepeat(18, 26, 10, startPlayingAlarm9); //start playing second file
-    Alarm.alarmRepeat(18, 26, 20, startPlayingAlarm10); //start playing second file
-    Alarm.alarmRepeat(18, 26, 30, startPlayingAlarm11); //start playing second file
-    Alarm.alarmRepeat(18, 26, 40, startPlayingAlarm12); //start playing second file
+    Alarm.alarmRepeat(11, 0, 0, startPlayingAlarm2); 
+    Alarm.alarmRepeat(13, 0, 0, startPlayingAlarm3); 
+    Alarm.alarmRepeat(15, 0, 0, startPlayingAlarm4); 
+    Alarm.alarmRepeat(17, 0, 0, startPlayingAlarm5); //start playing second file
+    Alarm.alarmRepeat(19, 0, 0, startPlayingAlarm6); //start playing second file
+    Alarm.alarmRepeat(21, 0, 0, startPlayingAlarm7); //start playing second file
+    Alarm.alarmRepeat(23, 0, 0, startPlayingAlarm8); //start playing second file
+    Alarm.alarmRepeat(1, 0, 0, startPlayingAlarm9); //start playing second file
+    Alarm.alarmRepeat(3, 0, 0, startPlayingAlarm10); //start playing second file
+    Alarm.alarmRepeat(5, 0, 0, startPlayingAlarm11); //start playing second file
+    Alarm.alarmRepeat(7, 0, 0, startPlayingAlarm12); //start playing second file
   }
 }
 
@@ -167,13 +168,10 @@ void startPlayingAlarm1() {
     delay(250);
     }
   else if (sampleNumber == 4){
-    playFile("18TKP4.WAV");
+    playFile("0910TKP4.WAV");
     delay(250);
     }
   else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("18TKP1.WAV");
-    delay(250);
   }
 }
 // Audio file 2
@@ -194,13 +192,10 @@ void startPlayingAlarm2() {
     delay(250);
     }
   else if (sampleNumber == 4){
-    playFile("19TKP4.WAV");
+    playFile("1112TKP4.WAV");
     delay(250);
     }
   else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("19TKP1.WAV");
-    delay(250);
   }
 }
 // Audio file 3
@@ -221,13 +216,10 @@ void startPlayingAlarm3() {
     delay(250);
     }
   else if (sampleNumber == 4){
-    playFile("20TKP4.WAV");
+    playFile("1314TKP4.WAV");
     delay(250);
     }
   else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("20TKP1.WAV");
-    delay(250);
   }
 }
 // Audio file 4
@@ -248,13 +240,10 @@ void startPlayingAlarm4() {
     delay(250);
     }
   else if (sampleNumber == 4){
-    playFile("21TKP4.WAV");
+    playFile("1516TKP4.WAV");
     delay(250);
     }
   else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("20TKP1.WAV");
-    delay(250);
   }
 }
 // Audio file 5
@@ -275,13 +264,10 @@ void startPlayingAlarm5() {
     delay(250);
     }
   else if (sampleNumber == 4){
-    playFile("22TKP4.WAV");
+    playFile("1718TKP4.WAV");
     delay(250);
     }
   else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("22TKP1.WAV");
-    delay(250);
   }
 }
 // Audio file 6
@@ -302,13 +288,10 @@ void startPlayingAlarm6() {
     delay(250);
     }
   else if (sampleNumber == 4){
-    playFile("23TKP4.WAV");
+    playFile("1920TKP4.WAV");
     delay(250);
     }
   else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("23TKP1.WAV");
-    delay(250);
   }
 }
 // Audio file 7
@@ -329,13 +312,10 @@ void startPlayingAlarm7() {
     delay(250);
     }
   else if (sampleNumber == 4){
-    playFile("00TKP4.WAV");
+    playFile("2122TKP4.WAV");
     delay(250);
     }
   else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("00TKP1.WAV");
-    delay(250);
   }
 }
 // Audio file 8
@@ -356,13 +336,10 @@ void startPlayingAlarm8() {
     delay(250);
     }
   else if (sampleNumber == 4){
-    playFile("01TKP4.WAV");
+    playFile("2300TKP4.WAV");
     delay(250);
     }
   else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("01TKP1.WAV");
-    delay(250);
   }
 }
 // Audio file 9
@@ -383,13 +360,10 @@ void startPlayingAlarm9() {
     delay(250);
     }
   else if (sampleNumber == 4){
-    playFile("02TKP4.WAV");
+    playFile("0102TKP4.WAV");
     delay(250);
     }
   else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("02TKP1.WAV");
-    delay(250);
   }
 }
 // Audio file 10
@@ -410,13 +384,10 @@ void startPlayingAlarm10() {
     delay(250);
     }
   else if (sampleNumber == 4){
-    playFile("03TKP4.WAV");
+    playFile("0304TKP4.WAV");
     delay(250);
     }
   else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("03TKP1.WAV");
-    delay(250);
   }
 }
 // Audio file 11
@@ -437,13 +408,10 @@ void startPlayingAlarm11() {
     delay(250);
     }
   else if (sampleNumber == 4){
-    playFile("04TKP4.WAV");
+    playFile("0506TKP4.WAV");
     delay(250);
     }
   else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("04TKP1.WAV");
-    delay(250);
   }
 }
 // Audio file 12
@@ -464,13 +432,10 @@ void startPlayingAlarm12() {
     delay(250);
     }
   else if (sampleNumber == 4){
-    playFile("05TKP4.WAV");
+    playFile("0708TKP4.WAV");
     delay(250);
     }
   else {
-    printAndLog("sampleNumber did not register. Default = 1");
-    playFile("05TKP1.WAV");
-    delay(250);
   }
 }
 
@@ -670,53 +635,101 @@ void fault_check(){
   printAndLog("Fault check: play default hour track");
   
 
-  //Changed this to go from 8pm to 8am for testing!
-    if (hour() == 18){
-      playFile("18TKP1.WAV");  // filenames are always uppercase 8.3 format 
-      delay(250); // wait for library to parse WAV info
-    }
-    else if (hour() == 21){
-      playFile("19TKP1.WAV");
-      delay(250);
-    }
-    else if (hour() == 22){
-      playFile("20TKP1.WAV");
-      delay(250);
-    }
-    else if (hour() == 23){
-      playFile("21TKP1.WAV");
-      delay(250);
-    }
-    else if (hour() == 0){
-      playFile("22TKP1.WAV");
+  //Changed this to go for 24 hrs
+    if (hour() == 0){
+      playFile("2300TKP4.WAV");
       delay(250);
     }
     else if (hour() == 1){
-      playFile("23TKP1.WAV");
+      playFile("0102TKP4.WAV");
       delay(250);
     }
     else if (hour() == 2){
-      playFile("00TKP1.WAV");
+      playFile("0102TKP4.WAV");
       delay(250);
     }
     else if (hour() == 3){
-      playFile("01TKP1.WAV");
+      playFile("0304TKP4.WAV");
       delay(250);
     }
     else if (hour() == 4){
-      playFile("02TKP1.WAV");
+      playFile("0304TKP4.WAV");
       delay(250);
     }
     else if (hour() == 5){
-      playFile("03TKP1.WAV");
+      playFile("0506TKP4.WAV");
       delay(250);
     }
     else if (hour() == 6){
-      playFile("04TKP1.WAV");
+      playFile("0506TKP4.WAV");
       delay(250);
     }
     else if (hour() == 7){
-      playFile("05TKP1.WAV");
+      playFile("0708TKP4.WAV");
+      delay(250);
+    }
+    else if (hour() == 8){
+      playFile("0708TKP4.WAV");
+      delay(250);
+    }
+    else if (hour() == 9){
+      playFile("0910TKP4.WAV");
+      delay(250);
+    }
+    else if (hour() == 10){
+      playFile("0910TKP4.WAV");
+      delay(250);
+    }
+    else if (hour() == 11){
+      playFile("1112TKP4.WAV");
+      delay(250);
+    }
+    else if (hour() == 12){
+      playFile("1112TKP4.WAV");
+      delay(250);
+    }
+    else if (hour() == 13){
+      playFile("1314.WAV");
+      delay(250);
+    }
+    else if (hour() == 14){
+      playFile("1314TKP4.WAV");
+      delay(250);
+    }
+    else if (hour() == 15){
+      playFile("1516TKP4.WAV");
+      delay(250);
+    }
+    else if (hour() == 16){
+      playFile("1516TKP4.WAV");
+      delay(250);
+    }
+    else if (hour() == 17){
+      playFile("1718TKP4.WAV");
+      delay(250);
+    }
+    else if (hour() == 18){
+      playFile("1718TKP4.WAV");
+      delay(250);
+    }
+    else if (hour() == 19){
+      playFile("1920TKP4.WAV");
+      delay(250);
+    }
+    else if (hour() == 20){
+      playFile("1920TKP4.WAV");
+      delay(250);
+    }
+    else if (hour() == 21){
+      playFile("2122TKP4.WAV");
+      delay(250);
+    }     
+    else if (hour() == 22){
+      playFile("2122TKP4.WAV");
+      delay(250);
+    }
+    else if (hour() == 23){
+      playFile("2300TKP4.WAV");
       delay(250);
     }
     //Adding these lines so that it has somethng to play between 5am - 8am
