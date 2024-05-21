@@ -551,6 +551,8 @@ void setup()  {
   // Determine if teensy should be on
   bool state = mode_on();
 
+  // Testing 24Hourbranch
+
   // If state is false, send digital high to done pin (go to sleep)
   if (state == false) {
     printAndLog("Sleep.");
