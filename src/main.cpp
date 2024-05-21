@@ -33,18 +33,20 @@ int mos_pwr = 3;
 int mos_audio = 2;
 
 //CONFIGURABLE DEFINITIONS (see config file)
-#define ALARM_1 "15:14:20"
-#define ALARM_2 "15:14:30"
-#define ALARM_3 "15:14:40"
-#define ALARM_4 "15:06:00"
-#define ALARM_5 "15:06:20"
-#define ALARM_6 "15:06:40"
-#define ALARM_7 "15:07:00"
-#define ALARM_8 "15:07:20"
-#define ALARM_9 "15:07:40"
-#define ALARM_10 "15:08:00"
-#define ALARM_11 "15:08:20"
-#define ALARM_12 "15:08:40"
+#define ALARM_1 "16:38:00"
+#define ALARM_2 "16:38:05"
+#define ALARM_3 "16:38:10"
+#define ALARM_4 "16:38:15"
+#define ALARM_5 "16:38:20"
+#define ALARM_6 "16:38:25"
+#define ALARM_7 "16:38:30"
+#define ALARM_8 "16:38:35"
+#define ALARM_9 "16:38:40"
+#define ALARM_10 "16:38:45"
+#define ALARM_11 "16:38:50"
+#define ALARM_12 "11:35:30"
+#define ALARM_13 "11:35:35"
+#define ALARM_14 "11:35:40"
 
 #define FILE_BASE_1 "18TKP"
 #define FILE_BASE_2 "19TKP"
@@ -58,17 +60,18 @@ int mos_audio = 2;
 #define FILE_BASE_10 "03TKP"
 #define FILE_BASE_11 "04TKP"
 #define FILE_BASE_12 "05TKP"
-
+#define FILE_BASE_13 "05TKP"
+#define FILE_BASE_14 "05TKP"
 
 #define SAMPLE_LOCATION "TKP"
 #define BAUDE_RATE 115200
 // Wake Time
-int startH = 12;
+int startH = 8;
 int startM = 0;
 int startS = 0;
 // Play Time (first alarm) [18:0:0 for real]
-int playH = 14;
-int playM = 9;
+int playH = 8;
+int playM = 5;
 int playS = 0;
 // Sleep Time
 int stopH = 16;
@@ -273,6 +276,22 @@ void startPlayingAlarm12() {
   delay(WAIT_AFTER_PLAY_MS);
 }
 
+// Audio file 13
+void startPlayingAlarm13() {
+  stopFile();
+  printAndLog("Alarm13");
+  playFile(makeFileNameString(FILE_BASE_13, sampleNumber));
+  delay(WAIT_AFTER_PLAY_MS);
+}
+
+// Audio file 14
+void startPlayingAlarm14() {
+  stopFile();
+  printAndLog("Alarm14");
+  playFile(makeFileNameString(FILE_BASE_14, sampleNumber));
+  delay(WAIT_AFTER_PLAY_MS);
+}
+
 // Turn off system
 // due to limit on number of alarms we can make, I am not using this alarm. 
 // instead, using the fault checker to do that. 
@@ -393,101 +412,102 @@ void fault_check(){
   bool mode_play_result = mode_play();
   if (mode_play_result == 1 && playWav1.isPlaying() == false){ 
   printAndLog("Fault check: play default hour track");
+  
   //Changed this to go for 24 hrs
     if (hour() == 0){
-      playFile("00TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_7, 1));
       delay(250);
     }
     else if (hour() == 1){
-      playFile("01TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_8, 1));
       delay(250);
     }
     else if (hour() == 2){
-      playFile("02TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_9, 1));
       delay(250);
     }
     else if (hour() == 3){
-      playFile("03TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_10, 1));
       delay(250);
     }
     else if (hour() == 4){
-      playFile("04TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_11, 1));
       delay(250);
     }
     else if (hour() == 5){
-      playFile("05TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_12, 1));
       delay(250);
     }
     else if (hour() == 6){
-      playFile("05TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_6, 1));
       delay(250);
     }
     else if (hour() == 7){
-      playFile("05TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_6, 1));
       delay(250);
     }
     else if (hour() == 8){
-      playFile("05TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_6, 1));
       delay(250);
     }
     else if (hour() == 9){
-      playFile("05TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_6, 1));
       delay(250);
     }
     else if (hour() == 10){
-      playFile("05TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_6, 1));
       delay(250);
     }
     else if (hour() == 11){
-      playFile("05TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_6, 1));
       delay(250);
     }
     else if (hour() == 12){
-      playFile("05TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_6, 1));
       delay(250);
     }
     else if (hour() == 13){
-      playFile("05TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_6, 1));
       delay(250);
     }
     else if (hour() == 14){
-      playFile("05TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_6, 1));
       delay(250);
     }
     else if (hour() == 15){
-      playFile("05TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_6, 1));
       delay(250);
     }
     else if (hour() == 16){
-      playFile("05TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_6, 1));
       delay(250);
     }
     else if (hour() == 17){
-      playFile("05TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_6, 1));
       delay(250);
     }
     else if (hour() == 18){
-      playFile("18TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_1, 1));
       delay(250);
     }
     else if (hour() == 19){
-      playFile("19TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_2, 1));
       delay(250);
     }
     else if (hour() == 20){
-      playFile("20TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_3, 1));
       delay(250);
     }
     else if (hour() == 21){
-      playFile("21TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_4, 1));
       delay(250);
     }     
     else if (hour() == 22){
-      playFile("22TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_5, 1));
       delay(250);
     }
     else if (hour() == 23){
-      playFile("23TKP1.wav");
+      playFile(makeFileNameString(FILE_BASE_6, 1));
       delay(250);
     }
   }
@@ -520,6 +540,10 @@ void setup()  {
     delay(1000);
     doneSignal();
   }
+  
+  //adding delay for tesing when it goes through set up so I can catch the terminal traff
+  Serial.println("5s Set up delay");
+  delay(5000);
 
   //check digital clock once in setup
   digitalClockDisplay();
@@ -577,24 +601,15 @@ void setup()  {
     Alarm.alarmRepeat(timeConstruct(ALARM_10)[0], timeConstruct(ALARM_10)[1], timeConstruct(ALARM_10)[2], startPlayingAlarm10);
     Alarm.alarmRepeat(timeConstruct(ALARM_11)[0], timeConstruct(ALARM_11)[1], timeConstruct(ALARM_11)[2], startPlayingAlarm11);
     Alarm.alarmRepeat(timeConstruct(ALARM_12)[0], timeConstruct(ALARM_12)[1], timeConstruct(ALARM_12)[2], startPlayingAlarm12);
+    Alarm.alarmRepeat(timeConstruct(ALARM_13)[0], timeConstruct(ALARM_13)[1], timeConstruct(ALARM_13)[2], startPlayingAlarm13);
+    Alarm.alarmRepeat(timeConstruct(ALARM_14)[0], timeConstruct(ALARM_14)[1], timeConstruct(ALARM_14)[2], startPlayingAlarm14);
+
+
   }
 }
 
 void loop() {
-  digitalClockDisplay();
+  digitalClockDisplay(); //serial print the time according to RTC
   fault_check(); //If wavfile isn't playing, force on based on time
   Alarm.delay(1000); // wait one second between clock display
-
-  //space for testing functions
-  /*
-  Serial.println("makeFileName(FILE_BASE_1, sampleNumber)");
-  Serial.println(makeFileName(FILE_BASE_1, sampleNumber));
-  Serial.println("Print and Log Filename");
-  printAndLog("test print and log");
-  Serial.println("playFile");
-  playFile(makeFileNameString(FILE_BASE_1, sampleNumber));
-  delay(10000);
-  stopFile();
-  */
-
 }
