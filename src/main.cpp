@@ -59,31 +59,13 @@ int mos_audio = 2;
 #define ALARM_24 "11:35:30"
 
 // File base names
-bool USE_SAMP = true //set to false if not using sample number
-#define FILE_BASE_1 "18TKP"
-#define FILE_BASE_2 "19TKP"
-#define FILE_BASE_3 "20TKP"
-#define FILE_BASE_4 "21TKP"
-#define FILE_BASE_5 "22TKP"
-#define FILE_BASE_6 "23TKP"
-#define FILE_BASE_7 "00TKP"
-#define FILE_BASE_8 "01TKP"
-#define FILE_BASE_9 "02TKP"
-#define FILE_BASE_10 "03TKP"
-#define FILE_BASE_11 "04TKP"
-#define FILE_BASE_12 "05TKP"
-#define FILE_BASE_13 "05TKP"
-#define FILE_BASE_14 "05TKP"
-#define FILE_BASE_15 "23TKP"
-#define FILE_BASE_16 "00TKP"
-#define FILE_BASE_17 "01TKP"
-#define FILE_BASE_18 "02TKP"
-#define FILE_BASE_19 "03TKP"
-#define FILE_BASE_20 "04TKP"
-#define FILE_BASE_21 "05TKP"
-#define FILE_BASE_22 "05TKP"
-#define FILE_BASE_23 "05TKP"
-#define FILE_BASE_24 "05TKP"
+bool USE_SAMP = true; //set to false if not using sample number
+#define FILE_BASE_1 "NAHDN"
+#define FILE_BASE_2 "NAHMN"
+#define FILE_BASE_3 "NAHAF"
+#define FILE_BASE_4 "NAHD"
+#define FILE_BASE_5 "NAHEV"
+#define FILE_BASE_6 "NAHLN"
 
 #define BAUDE_RATE 115200;
 // Wake Time
@@ -220,85 +202,169 @@ std::array<int,3> timeConstruct(std::string timeString){
 // Audio file 1
 void startPlayingAlarm1() {
   stopFile();
-  printAndLog("Alarm1");
+  printAndLog("Alarm1");  
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
   playFile(makeFileNameString(FILE_BASE_1, sampleNumber, USE_SAMP)); //make file name from alarm hour and sample number.
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 2
 void startPlayingAlarm2() {
   stopFile();
-  printAndLog("Alarm2");
-  playFile(makeFileNameString(FILE_BASE_2, sampleNumber, USE_SAMP));
+  printAndLog("Alarm2");  
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_1, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 3
 void startPlayingAlarm3() {
   stopFile();
-  printAndLog("Alarm3");
-  playFile(makeFileNameString(FILE_BASE_3, sampleNumber, USE_SAMP));
+  printAndLog("Alarm3");  
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_1, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 4
 void startPlayingAlarm4() {
   stopFile();
-  printAndLog("Alarm4");
-  playFile(makeFileNameString(FILE_BASE_4, sampleNumber, USE_SAMP));
+  printAndLog("Alarm4");  
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_1, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 5
 void startPlayingAlarm5() {
   stopFile();
-  printAndLog("Alarm5");
-  playFile(makeFileNameString(FILE_BASE_5, sampleNumber, USE_SAMP));
+  printAndLog("Alarm5");  
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_2, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 6
 void startPlayingAlarm6() {
   stopFile();
-  printAndLog("Alarm6");
-  playFile(makeFileNameString(FILE_BASE_6, sampleNumber, USE_SAMP));
+  printAndLog("Alarm6");  
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_2, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 7
 void startPlayingAlarm7() {
   stopFile();
-  printAndLog("Alarm7");
-  playFile(makeFileNameString(FILE_BASE_7, sampleNumber, USE_SAMP));
+  printAndLog("Alarm7");  
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_3, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 8
 void startPlayingAlarm8() {
   stopFile();
   printAndLog("Alarm8");
-  playFile(makeFileNameString(FILE_BASE_8, sampleNumber, USE_SAMP));
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_3, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 9
 void startPlayingAlarm9() {
   stopFile();
   printAndLog("Alarm9");
-  playFile(makeFileNameString(FILE_BASE_9, sampleNumber, USE_SAMP));
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_3, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 10
 void startPlayingAlarm10() {
   stopFile();  
   printAndLog("Alarm10");
-  playFile(makeFileNameString(FILE_BASE_10, sampleNumber, USE_SAMP));
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_3, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 11
 void startPlayingAlarm11() {
   stopFile();
   printAndLog("Alarm11");
-  playFile(makeFileNameString(FILE_BASE_11, sampleNumber, USE_SAMP));
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_3, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 12
 void startPlayingAlarm12() {
   stopFile();
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
   printAndLog("Alarm12");
-  playFile(makeFileNameString(FILE_BASE_12, sampleNumber, USE_SAMP));
+  playFile(makeFileNameString(FILE_BASE_3, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -306,7 +372,14 @@ void startPlayingAlarm12() {
 void startPlayingAlarm13() {
   stopFile();
   printAndLog("Alarm13");
-  playFile(makeFileNameString(FILE_BASE_13, sampleNumber, USE_SAMP));
+  sampleNumber = Entropy.random(1,4)4
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_4, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -314,7 +387,14 @@ void startPlayingAlarm13() {
 void startPlayingAlarm14() {
   stopFile();
   printAndLog("Alarm14");
-  playFile(makeFileNameString(FILE_BASE_14, sampleNumber, USE_SAMP));
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_4, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -322,7 +402,14 @@ void startPlayingAlarm14() {
 void startPlayingAlarm15() {
   stopFile();
   printAndLog("Alarm15");
-  playFile(makeFileNameString(FILE_BASE_15, sampleNumber, USE_SAMP));
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_4, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -330,7 +417,14 @@ void startPlayingAlarm15() {
 void startPlayingAlarm16() {
   stopFile();
   printAndLog("Alarm16");
-  playFile(makeFileNameString(FILE_BASE_16, sampleNumber, USE_SAMP));
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_4, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -338,7 +432,14 @@ void startPlayingAlarm16() {
 void startPlayingAlarm17() {
   stopFile();
   printAndLog("Alarm17");
-  playFile(makeFileNameString(FILE_BASE_17, sampleNumber, USE_SAMP));
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_4, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -346,7 +447,14 @@ void startPlayingAlarm17() {
 void startPlayingAlarm18() {
   stopFile();
   printAndLog("Alarm18");
-  playFile(makeFileNameString(FILE_BASE_18, sampleNumber, USE_SAMP));
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_4, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -354,7 +462,14 @@ void startPlayingAlarm18() {
 void startPlayingAlarm19() {
   stopFile();
   printAndLog("Alarm19");
-  playFile(makeFileNameString(FILE_BASE_19, sampleNumber, USE_SAMP));
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_5, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -362,7 +477,14 @@ void startPlayingAlarm19() {
 void startPlayingAlarm20() {
   stopFile();
   printAndLog("Alarm20");
-  playFile(makeFileNameString(FILE_BASE_20, sampleNumber, USE_SAMP));
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_5, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -370,7 +492,14 @@ void startPlayingAlarm20() {
 void startPlayingAlarm21() {
   stopFile();
   printAndLog("Alarm21");
-  playFile(makeFileNameString(FILE_BASE_21, sampleNumber, USE_SAMP));
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_6, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -378,7 +507,14 @@ void startPlayingAlarm21() {
 void startPlayingAlarm22() {
   stopFile();
   printAndLog("Alarm22");
-  playFile(makeFileNameString(FILE_BASE_22, sampleNumber, USE_SAMP));
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_6, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -386,7 +522,14 @@ void startPlayingAlarm22() {
 void startPlayingAlarm23() {
   stopFile();
   printAndLog("Alarm23");
-  playFile(makeFileNameString(FILE_BASE_23, sampleNumber, USE_SAMP));
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_6, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -394,9 +537,79 @@ void startPlayingAlarm23() {
 void startPlayingAlarm24() {
   stopFile();
   printAndLog("Alarm24");
-  playFile(makeFileNameString(FILE_BASE_24, sampleNumber, USE_SAMP));
+  sampleNumber = Entropy.random(1,4);
+  if (sampleNumber <= 4 ){
+    printAndLog(customAdd("sampleNumber =", sampleNumber));
+    }
+  else{
+    printAndLog("sampleNumber out of range");
+    }  
+  playFile(makeFileNameString(FILE_BASE_6, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
+
+//Convert hours minutes and seconds to seconds after midnight
+int time2sec (int h, int m, int s) {
+  int timeSec = s + m * 60 + h * 3600;
+  return timeSec;
+}
+
+//Function to determine if the present time is between two values
+bool time_between(std::string startTime, std::string stopTime) {
+
+  // Break up times into H, M and S
+  int inputH = hour();
+  int inputM = minute();
+  int inputS = second();
+
+  int startH = timeConstruct(startTime)[0];
+  int startM = timeConstruct(startTime)[1];
+  int startS = timeConstruct(startTime)[2];
+
+  int stopH = timeConstruct(stopTime)[0];
+  int stopM = timeConstruct(stopTime)[1];
+  int stopS = timeConstruct(stopTime)[2];
+
+  // convert times to seconds after midnight
+  int inputSeconds = time2sec(inputH, inputM, inputS);
+  int startSeconds = time2sec(startH, startM, startS);
+  int stopSeconds = time2sec(stopH, stopM, stopS);
+  bool rtrn = 0;
+  
+  if (startSeconds < stopSeconds) {
+    //Serial.println("Play interval does not include midnight");
+    if (0 <= inputSeconds && inputSeconds < startSeconds) {
+      //Serial.println("Case 1");
+      rtrn = 0;
+    }
+    else if (startSeconds <= inputSeconds && inputSeconds < stopSeconds) {
+      //Serial.println("Case 2");
+      rtrn = 1;
+    }
+    else if (stopSeconds <= inputSeconds && inputSeconds < SEC_PRE_MIDNIGHT) {
+      //Serial.println("Case 3");
+      rtrn = 0;
+    }
+  }
+  else if (startSeconds > stopSeconds) {
+    //Serial.println("Play interval includes midnight");
+    if (0 <= inputSeconds && inputSeconds < stopSeconds) {
+      //Serial.println("Case 1");
+      rtrn = 1;
+    }
+    else if (stopSeconds <= inputSeconds && inputSeconds < startSeconds) {
+      //Serial.println("Case 2");
+      rtrn = 0;
+    }
+    else if (startSeconds <= inputSeconds && inputSeconds <= MIDNIGHT_IN_SEC) {
+      //Serial.println("Case 3");
+      rtrn = 1;
+    }
+  }
+
+  return rtrn;
+}
+
 
 // FAULT CHECK
 void fault_check(){
@@ -405,7 +618,7 @@ void fault_check(){
   printAndLog("Fault check: play default hour track");
   
   //Changed this to go for 24 hrs
-    if (hour() == 0){
+    if (time_between(ALARM_24, ALARM_1)){
       playFile(makeFileNameString(FILE_BASE_7, 1, true));
       delay(250);
     }
