@@ -58,7 +58,8 @@ int mos_audio = 2;
 #define ALARM_23 "16:38:50"
 #define ALARM_24 "11:35:30"
 
-
+// File base names
+bool USE_SAMP = true //set to false if not using sample number
 #define FILE_BASE_1 "18TKP"
 #define FILE_BASE_2 "19TKP"
 #define FILE_BASE_3 "20TKP"
@@ -84,8 +85,7 @@ int mos_audio = 2;
 #define FILE_BASE_23 "05TKP"
 #define FILE_BASE_24 "05TKP"
 
-#define SAMPLE_LOCATION "TKP"
-#define BAUDE_RATE 115200
+#define BAUDE_RATE 115200;
 // Wake Time
 int startH = 8;
 int startM = 0;
@@ -170,10 +170,15 @@ const char * customAdd(std::string string, int b){
 }
 
 // construct playback file name from an hour + sample number (e.g. 18TKP1.wav) as a string
-std::string makeFileNameString(std::string file_base, int samp){
-    std::string concat = file_base + std::to_string(samp) + ".wav";
-    //const char * result = concat.c_str(); //convert string to pointer
-    return concat;  
+std::string makeFileNameString(std::string file_base, int samp, bool use_samp){
+  if(use_samp == true){
+    std::string result = file_base + std::to_string(samp) + ".wav";  
+    return result;    
+  }
+  else{
+    std::string result = file_base + ".wav";  
+    return result;       
+  }
 }
 
 // WAV FILE PLAYER AND TPL5110 HELPER FUNCTIONS
@@ -216,84 +221,84 @@ std::array<int,3> timeConstruct(std::string timeString){
 void startPlayingAlarm1() {
   stopFile();
   printAndLog("Alarm1");
-  playFile(makeFileNameString(FILE_BASE_1, sampleNumber)); //make file name from alarm hour and sample number.
+  playFile(makeFileNameString(FILE_BASE_1, sampleNumber, USE_SAMP)); //make file name from alarm hour and sample number.
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 2
 void startPlayingAlarm2() {
   stopFile();
   printAndLog("Alarm2");
-  playFile(makeFileNameString(FILE_BASE_2, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_2, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 3
 void startPlayingAlarm3() {
   stopFile();
   printAndLog("Alarm3");
-  playFile(makeFileNameString(FILE_BASE_3, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_3, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 4
 void startPlayingAlarm4() {
   stopFile();
   printAndLog("Alarm4");
-  playFile(makeFileNameString(FILE_BASE_4, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_4, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 5
 void startPlayingAlarm5() {
   stopFile();
   printAndLog("Alarm5");
-  playFile(makeFileNameString(FILE_BASE_5, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_5, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 6
 void startPlayingAlarm6() {
   stopFile();
   printAndLog("Alarm6");
-  playFile(makeFileNameString(FILE_BASE_6, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_6, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 7
 void startPlayingAlarm7() {
   stopFile();
   printAndLog("Alarm7");
-  playFile(makeFileNameString(FILE_BASE_7, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_7, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 8
 void startPlayingAlarm8() {
   stopFile();
   printAndLog("Alarm8");
-  playFile(makeFileNameString(FILE_BASE_8, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_8, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 9
 void startPlayingAlarm9() {
   stopFile();
   printAndLog("Alarm9");
-  playFile(makeFileNameString(FILE_BASE_9, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_9, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 10
 void startPlayingAlarm10() {
   stopFile();  
   printAndLog("Alarm10");
-  playFile(makeFileNameString(FILE_BASE_10, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_10, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 11
 void startPlayingAlarm11() {
   stopFile();
   printAndLog("Alarm11");
-  playFile(makeFileNameString(FILE_BASE_11, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_11, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 12
 void startPlayingAlarm12() {
   stopFile();
   printAndLog("Alarm12");
-  playFile(makeFileNameString(FILE_BASE_12, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_12, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -301,7 +306,7 @@ void startPlayingAlarm12() {
 void startPlayingAlarm13() {
   stopFile();
   printAndLog("Alarm13");
-  playFile(makeFileNameString(FILE_BASE_13, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_13, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -309,7 +314,7 @@ void startPlayingAlarm13() {
 void startPlayingAlarm14() {
   stopFile();
   printAndLog("Alarm14");
-  playFile(makeFileNameString(FILE_BASE_14, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_14, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -317,7 +322,7 @@ void startPlayingAlarm14() {
 void startPlayingAlarm15() {
   stopFile();
   printAndLog("Alarm15");
-  playFile(makeFileNameString(FILE_BASE_15, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_15, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -325,7 +330,7 @@ void startPlayingAlarm15() {
 void startPlayingAlarm16() {
   stopFile();
   printAndLog("Alarm16");
-  playFile(makeFileNameString(FILE_BASE_16, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_16, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -333,7 +338,7 @@ void startPlayingAlarm16() {
 void startPlayingAlarm17() {
   stopFile();
   printAndLog("Alarm17");
-  playFile(makeFileNameString(FILE_BASE_17, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_17, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -341,7 +346,7 @@ void startPlayingAlarm17() {
 void startPlayingAlarm18() {
   stopFile();
   printAndLog("Alarm18");
-  playFile(makeFileNameString(FILE_BASE_18, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_18, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -349,7 +354,7 @@ void startPlayingAlarm18() {
 void startPlayingAlarm19() {
   stopFile();
   printAndLog("Alarm19");
-  playFile(makeFileNameString(FILE_BASE_19, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_19, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -357,7 +362,7 @@ void startPlayingAlarm19() {
 void startPlayingAlarm20() {
   stopFile();
   printAndLog("Alarm20");
-  playFile(makeFileNameString(FILE_BASE_20, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_20, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -365,7 +370,7 @@ void startPlayingAlarm20() {
 void startPlayingAlarm21() {
   stopFile();
   printAndLog("Alarm21");
-  playFile(makeFileNameString(FILE_BASE_21, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_21, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -373,7 +378,7 @@ void startPlayingAlarm21() {
 void startPlayingAlarm22() {
   stopFile();
   printAndLog("Alarm22");
-  playFile(makeFileNameString(FILE_BASE_22, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_22, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -381,7 +386,7 @@ void startPlayingAlarm22() {
 void startPlayingAlarm23() {
   stopFile();
   printAndLog("Alarm23");
-  playFile(makeFileNameString(FILE_BASE_23, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_23, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -389,7 +394,7 @@ void startPlayingAlarm23() {
 void startPlayingAlarm24() {
   stopFile();
   printAndLog("Alarm24");
-  playFile(makeFileNameString(FILE_BASE_24, sampleNumber));
+  playFile(makeFileNameString(FILE_BASE_24, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 
@@ -401,99 +406,99 @@ void fault_check(){
   
   //Changed this to go for 24 hrs
     if (hour() == 0){
-      playFile(makeFileNameString(FILE_BASE_7, 1));
+      playFile(makeFileNameString(FILE_BASE_7, 1, true));
       delay(250);
     }
     else if (hour() == 1){
-      playFile(makeFileNameString(FILE_BASE_8, 1));
+      playFile(makeFileNameString(FILE_BASE_8, 1, true));
       delay(250);
     }
     else if (hour() == 2){
-      playFile(makeFileNameString(FILE_BASE_9, 1));
+      playFile(makeFileNameString(FILE_BASE_9, 1, true));
       delay(250);
     }
     else if (hour() == 3){
-      playFile(makeFileNameString(FILE_BASE_10, 1));
+      playFile(makeFileNameString(FILE_BASE_10, 1, true));
       delay(250);
     }
     else if (hour() == 4){
-      playFile(makeFileNameString(FILE_BASE_11, 1));
+      playFile(makeFileNameString(FILE_BASE_11, 1, true));
       delay(250);
     }
     else if (hour() == 5){
-      playFile(makeFileNameString(FILE_BASE_12, 1));
+      playFile(makeFileNameString(FILE_BASE_12, 1, true));
       delay(250);
     }
     else if (hour() == 6){
-      playFile(makeFileNameString(FILE_BASE_6, 1));
+      playFile(makeFileNameString(FILE_BASE_6, 1, true));
       delay(250);
     }
     else if (hour() == 7){
-      playFile(makeFileNameString(FILE_BASE_6, 1));
+      playFile(makeFileNameString(FILE_BASE_6, 1, true));
       delay(250);
     }
     else if (hour() == 8){
-      playFile(makeFileNameString(FILE_BASE_6, 1));
+      playFile(makeFileNameString(FILE_BASE_6, 1, true));
       delay(250);
     }
     else if (hour() == 9){
-      playFile(makeFileNameString(FILE_BASE_6, 1));
+      playFile(makeFileNameString(FILE_BASE_6, 1, true));
       delay(250);
     }
     else if (hour() == 10){
-      playFile(makeFileNameString(FILE_BASE_6, 1));
+      playFile(makeFileNameString(FILE_BASE_6, 1, true));
       delay(250);
     }
     else if (hour() == 11){
-      playFile(makeFileNameString(FILE_BASE_6, 1));
+      playFile(makeFileNameString(FILE_BASE_6, 1, true));
       delay(250);
     }
     else if (hour() == 12){
-      playFile(makeFileNameString(FILE_BASE_6, 1));
+      playFile(makeFileNameString(FILE_BASE_6, 1, true));
       delay(250);
     }
     else if (hour() == 13){
-      playFile(makeFileNameString(FILE_BASE_6, 1));
+      playFile(makeFileNameString(FILE_BASE_6, 1, true));
       delay(250);
     }
     else if (hour() == 14){
-      playFile(makeFileNameString(FILE_BASE_6, 1));
+      playFile(makeFileNameString(FILE_BASE_6, 1, true));
       delay(250);
     }
     else if (hour() == 15){
-      playFile(makeFileNameString(FILE_BASE_6, 1));
+      playFile(makeFileNameString(FILE_BASE_6, 1, true));
       delay(250);
     }
     else if (hour() == 16){
-      playFile(makeFileNameString(FILE_BASE_6, 1));
+      playFile(makeFileNameString(FILE_BASE_6, 1, true));
       delay(250);
     }
     else if (hour() == 17){
-      playFile(makeFileNameString(FILE_BASE_6, 1));
+      playFile(makeFileNameString(FILE_BASE_6, 1, true));
       delay(250);
     }
     else if (hour() == 18){
-      playFile(makeFileNameString(FILE_BASE_1, 1));
+      playFile(makeFileNameString(FILE_BASE_1, 1, true));
       delay(250);
     }
     else if (hour() == 19){
-      playFile(makeFileNameString(FILE_BASE_2, 1));
+      playFile(makeFileNameString(FILE_BASE_2, 1, true));
       delay(250);
     }
     else if (hour() == 20){
-      playFile(makeFileNameString(FILE_BASE_3, 1));
+      playFile(makeFileNameString(FILE_BASE_3, 1, true));
       delay(250);
     }
     else if (hour() == 21){
-      playFile(makeFileNameString(FILE_BASE_4, 1));
+      playFile(makeFileNameString(FILE_BASE_4, 1, true));
       delay(250);
     }     
     else if (hour() == 22){
-      playFile(makeFileNameString(FILE_BASE_5, 1));
+      playFile(makeFileNameString(FILE_BASE_5, 1, true));
       delay(250);
     }
     else if (hour() == 23){
-      playFile(makeFileNameString(FILE_BASE_6, 1));
+      playFile(makeFileNameString(FILE_BASE_6, 1, true));
       delay(250);
     }
   }
@@ -544,14 +549,9 @@ void setup()  {
   sgtl5000_1.enable();
   sgtl5000_1.volume(0.75);
 
-  //update the value of sampleNumber to be a random value between 1 and 4 (inclusive)
+  //Initialize the entropy funcition
   Entropy.Initialize();
   sampleNumber = Entropy.random(1,4);
-
-  //FOR TESTING
-  printAndLog("hard coding sample number to be 1");
-  sampleNumber = 1;
-
   if (sampleNumber <= 4 ){
     printAndLog(customAdd("sampleNumber =", sampleNumber));
     }
