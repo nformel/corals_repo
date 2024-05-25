@@ -5,6 +5,9 @@
 #include <Arduino.h>
 #include <TimeLib.h>
 #include <TimeAlarms.h>
+#include "Adafruit_BLE.h"
+#include "Adafruit_BluefruitLE_UART.h"
+
 //Wav Player Setup
 #include <Audio.h>
 #include <Wire.h>
@@ -21,6 +24,13 @@ AudioConnection          patchCord1(playWav1, 0, audioOutput, 0);
 AudioConnection          patchCord2(playWav1, 1, audioOutput, 1);
 AudioControlSGTL5000     sgtl5000_1;
 
+//Bluefruit setup
+#define FACTORYRESET_ENABLE         1
+#define MINIMUM_FIRMWARE_VERSION    "0.6.6"
+#define MODE_LED_BEHAVIOUR          "MODE"
+#define BLUEFRUIT_UART_MODE_PIN     12
+Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
+
 //STATIC DEFINITIONS
 #define SDCARD_CS_PIN    10
 #define SDCARD_MOSI_PIN  7
@@ -31,62 +41,62 @@ AudioControlSGTL5000     sgtl5000_1;
 int done_pin = 17;
 int mos_pwr = 3;
 int mos_audio = 2;
-
-//CONFIGURABLE DEFINITIONS (see config file)
-#define ALARM_1 "00:30:00"
-#define ALARM_2 "01:30:00"
-#define ALARM_3 "02:30:00"
-#define ALARM_4 "03:30:00"
-#define ALARM_5 "04:30:00"
-#define ALARM_6 "05:30:00"
-#define ALARM_7 "06:30:00"
-#define ALARM_8 "07:30:00"
-#define ALARM_9 "08:30:00"
-#define ALARM_10 "09:30:00"
-#define ALARM_11 "10:30:00"
-#define ALARM_12 "11:30:00"
-#define ALARM_13 "12:30:00"
-#define ALARM_14 "13:30:00"
-#define ALARM_15 "14:30:00"
-#define ALARM_16 "15:30:00"
-#define ALARM_17 "16:30:00"
-#define ALARM_18 "17:30:00"
-#define ALARM_19 "18:30:00"
-#define ALARM_20 "19:30:00"
-#define ALARM_21 "20:30:00"
-#define ALARM_22 "21:30:00"
-#define ALARM_23 "22:30:00"
-#define ALARM_24 "23:30:00"
-
-// File base names
 bool USE_SAMP = true; //set to false if not using sample number
-#define ALARM_1_FILE_BASE "NAHLN" 
-#define ALARM_2_FILE_BASE "NAHLN" 
-#define ALARM_3_FILE_BASE "NAHLN" 
-#define ALARM_4_FILE_BASE "NAHLN" 
-#define ALARM_5_FILE_BASE "NAHDN" 
-#define ALARM_6_FILE_BASE "NAHDN" 
-#define ALARM_7_FILE_BASE "NAHMN" 
-#define ALARM_8_FILE_BASE "NAHMN" 
-#define ALARM_9_FILE_BASE "NAHMN" 
-#define ALARM_10_FILE_BASE "NAHMN" 
-#define ALARM_11_FILE_BASE "NAHMN" 
-#define ALARM_12_FILE_BASE "NAHMN" 
-#define ALARM_13_FILE_BASE "NAHAF"
-#define ALARM_14_FILE_BASE "NAHAF"
-#define ALARM_15_FILE_BASE "NAHAF"
-#define ALARM_16_FILE_BASE "NAHAF"
-#define ALARM_17_FILE_BASE "NAHAF"
-#define ALARM_18_FILE_BASE "NAHAF"
-#define ALARM_19_FILE_BASE "NAHDK" 
-#define ALARM_20_FILE_BASE "NAHDK" 
-#define ALARM_21_FILE_BASE "NAHEV" 
-#define ALARM_22_FILE_BASE "NAHEV" 
-#define ALARM_23_FILE_BASE "NAHEV" 
-#define ALARM_24_FILE_BASE "NAHEV" 
-
-
+#define NUM_SAMP 3 //number of samples for each FILE_BASE
 #define BAUDE_RATE 115200
+
+//ALARM TIMES
+#define ALARM_1 "14:43:00"
+#define ALARM_2 "14:43:10"
+#define ALARM_3 "14:43:20"
+#define ALARM_4 "14:43:30"
+#define ALARM_5 "14:43:40"
+#define ALARM_6 "14:43:50"
+#define ALARM_7 "14:44:00"
+#define ALARM_8 "14:44:10"
+#define ALARM_9 "14:44:20"
+#define ALARM_10 "14:44:30"
+#define ALARM_11 "14:44:40"
+#define ALARM_12 "14:44:50"
+#define ALARM_13 "14:45:00"
+#define ALARM_14 "14:45:10"
+#define ALARM_15 "14:45:20"
+#define ALARM_16 "14:45:30"
+#define ALARM_17 "14:45:40"
+#define ALARM_18 "14:45:50"
+#define ALARM_19 "14:46:00"
+#define ALARM_20 "14:46:10"
+#define ALARM_21 "14:46:20"
+#define ALARM_22 "14:46:30"
+#define ALARM_23 "14:46:40"
+#define ALARM_24 "14:46:50"
+
+//SOUND FILE BASE NAMES
+#define ALARM_1_FILE_BASE "TKLN" 
+#define ALARM_2_FILE_BASE "TKLN" 
+#define ALARM_3_FILE_BASE "TKLN" 
+#define ALARM_4_FILE_BASE "TKLN" 
+#define ALARM_5_FILE_BASE "TKDN" 
+#define ALARM_6_FILE_BASE "TKDN" 
+#define ALARM_7_FILE_BASE "TKMN" 
+#define ALARM_8_FILE_BASE "TKMN" 
+#define ALARM_9_FILE_BASE "TKMN" 
+#define ALARM_10_FILE_BASE "TKMN" 
+#define ALARM_11_FILE_BASE "TKMN" 
+#define ALARM_12_FILE_BASE "TKMN" 
+#define ALARM_13_FILE_BASE "TKAF"
+#define ALARM_14_FILE_BASE "TKAF"
+#define ALARM_15_FILE_BASE "TKAF"
+#define ALARM_16_FILE_BASE "TKAF"
+#define ALARM_17_FILE_BASE "TKAF"
+#define ALARM_18_FILE_BASE "TKAF"
+#define ALARM_19_FILE_BASE "TKDK" 
+#define ALARM_20_FILE_BASE "TKDK" 
+#define ALARM_21_FILE_BASE "TKEV" 
+#define ALARM_22_FILE_BASE "TKEV" 
+#define ALARM_23_FILE_BASE "TKEV" 
+#define ALARM_24_FILE_BASE "TKEV" 
+
 // Wake Time
 int startH = 8;
 int startM = 0;
@@ -100,8 +110,8 @@ int stopH = 16;
 int stopM = 59;
 int stopS = 0;
 
-// declare the sample number as global variable
-int sampleNumber;
+// initialize the sample number as global variable
+int sampleNumber = 0;
 
 // SD Logging file instantiation
 File myFile;
@@ -217,12 +227,18 @@ std::array<int,3> timeConstruct(std::string timeString){
   return timeInts;
 }
 
+// A small helper for Bluefruit
+void error(const __FlashStringHelper*err) {
+  Serial.println(err);
+  while (1);
+}
+
 // ALARM FUNCTIONS
 // Audio file 1
 void startPlayingAlarm1() {
   stopFile();
   printAndLog("Alarm1");  
-  sampleNumber = Entropy.random(1,4);  
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);  
   playFile(makeFileNameString(ALARM_1_FILE_BASE, sampleNumber, USE_SAMP)); //make file name from alarm hour and sample number.
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -230,7 +246,7 @@ void startPlayingAlarm1() {
 void startPlayingAlarm2() {
   stopFile();
   printAndLog("Alarm2");  
-  sampleNumber = Entropy.random(1,4);
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_2_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -238,7 +254,7 @@ void startPlayingAlarm2() {
 void startPlayingAlarm3() {
   stopFile();
   printAndLog("Alarm3");  
-  sampleNumber = Entropy.random(1,4);
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_3_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -246,7 +262,7 @@ void startPlayingAlarm3() {
 void startPlayingAlarm4() {
   stopFile();
   printAndLog("Alarm4");  
-  sampleNumber = Entropy.random(1,4);
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_4_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -254,7 +270,7 @@ void startPlayingAlarm4() {
 void startPlayingAlarm5() {
   stopFile();
   printAndLog("Alarm5");  
-  sampleNumber = Entropy.random(1,4); 
+  sampleNumber = Entropy.random(1, NUM_SAMP+1); 
   playFile(makeFileNameString(ALARM_5_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -262,7 +278,7 @@ void startPlayingAlarm5() {
 void startPlayingAlarm6() {
   stopFile();
   printAndLog("Alarm6");  
-  sampleNumber = Entropy.random(1,4);
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_6_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -270,7 +286,7 @@ void startPlayingAlarm6() {
 void startPlayingAlarm7() {
   stopFile();
   printAndLog("Alarm7");  
-  sampleNumber = Entropy.random(1,4);
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_7_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -278,7 +294,7 @@ void startPlayingAlarm7() {
 void startPlayingAlarm8() {
   stopFile();
   printAndLog("Alarm8");
-  sampleNumber = Entropy.random(1,4);
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_8_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -286,7 +302,7 @@ void startPlayingAlarm8() {
 void startPlayingAlarm9() {
   stopFile();
   printAndLog("Alarm9");
-  sampleNumber = Entropy.random(1,4);
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_9_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -294,7 +310,7 @@ void startPlayingAlarm9() {
 void startPlayingAlarm10() {
   stopFile();  
   printAndLog("Alarm10");
-  sampleNumber = Entropy.random(1,4);
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_10_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -302,14 +318,14 @@ void startPlayingAlarm10() {
 void startPlayingAlarm11() {
   stopFile();
   printAndLog("Alarm11");
-  sampleNumber = Entropy.random(1,4); 
+  sampleNumber = Entropy.random(1, NUM_SAMP+1); 
   playFile(makeFileNameString(ALARM_11_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 12
 void startPlayingAlarm12() {
   stopFile();
-  sampleNumber = Entropy.random(1,4);  
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);  
   printAndLog("Alarm12");
   playFile(makeFileNameString(ALARM_12_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
@@ -319,7 +335,7 @@ void startPlayingAlarm12() {
 void startPlayingAlarm13() {
   stopFile();
   printAndLog("Alarm13");
-  sampleNumber = Entropy.random(1,4);
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_13_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -328,7 +344,7 @@ void startPlayingAlarm13() {
 void startPlayingAlarm14() {
   stopFile();
   printAndLog("Alarm14");
-  sampleNumber = Entropy.random(1,4);
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_14_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -337,7 +353,7 @@ void startPlayingAlarm14() {
 void startPlayingAlarm15() {
   stopFile();
   printAndLog("Alarm15");
-  sampleNumber = Entropy.random(1,4); 
+  sampleNumber = Entropy.random(1, NUM_SAMP+1); 
   playFile(makeFileNameString(ALARM_15_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -346,7 +362,7 @@ void startPlayingAlarm15() {
 void startPlayingAlarm16() {
   stopFile();
   printAndLog("Alarm16");
-  sampleNumber = Entropy.random(1,4);
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_16_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -355,7 +371,7 @@ void startPlayingAlarm16() {
 void startPlayingAlarm17() {
   stopFile();
   printAndLog("Alarm17");
-  sampleNumber = Entropy.random(1,4);
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_17_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -364,7 +380,7 @@ void startPlayingAlarm17() {
 void startPlayingAlarm18() {
   stopFile();
   printAndLog("Alarm18");
-  sampleNumber = Entropy.random(1,4);
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_18_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -373,7 +389,7 @@ void startPlayingAlarm18() {
 void startPlayingAlarm19() {
   stopFile();
   printAndLog("Alarm19");
-  sampleNumber = Entropy.random(1,4);
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_19_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -382,7 +398,7 @@ void startPlayingAlarm19() {
 void startPlayingAlarm20() {
   stopFile();
   printAndLog("Alarm20");
-  sampleNumber = Entropy.random(1,4);
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_20_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -391,7 +407,7 @@ void startPlayingAlarm20() {
 void startPlayingAlarm21() {
   stopFile();
   printAndLog("Alarm21");
-  sampleNumber = Entropy.random(1,4);
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_21_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -400,7 +416,7 @@ void startPlayingAlarm21() {
 void startPlayingAlarm22() {
   stopFile();
   printAndLog("Alarm22");
-  sampleNumber = Entropy.random(1,4); 
+  sampleNumber = Entropy.random(1, NUM_SAMP+1); 
   playFile(makeFileNameString(ALARM_22_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -409,7 +425,7 @@ void startPlayingAlarm22() {
 void startPlayingAlarm23() {
   stopFile();
   printAndLog("Alarm23");
-  sampleNumber = Entropy.random(1,4);  
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);  
   playFile(makeFileNameString(ALARM_23_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -418,7 +434,7 @@ void startPlayingAlarm23() {
 void startPlayingAlarm24() {
   stopFile();
   printAndLog("Alarm24");
-  sampleNumber = Entropy.random(1,4);
+  sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_24_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
 }
@@ -491,9 +507,14 @@ void fault_check(){
   // if no audio is playing, start the appropriate default track
   if (playWav1.isPlaying() == false){ 
   printAndLog("Fault Check: System not playing.");
-  sampleNumber = Entropy.random(1,4);
   
-  //Changed this to go for 24 hrs
+    // Check if sampleNumber is set to non-zero (e.g. system has stayed awake since alarm tripped)
+    // If zero, then system went through a power cycle. Re-randomize.
+    if (sampleNumber == 0){
+      sampleNumber = Entropy.random(1, NUM_SAMP+1);
+    }
+  
+    //Changed this to go for 24 hrs
     if (time_between(ALARM_1, ALARM_2)){
       playFile(makeFileNameString(ALARM_1_FILE_BASE, sampleNumber, true));
       delay(250);
@@ -604,6 +625,10 @@ void setup()  {
   // Set up serial for debugging
   Serial.begin(BAUDE_RATE);
 
+  //adding delay for tesing when it goes through set up so I can catch the terminal traff
+  Serial.println("5s Set up delay");
+  delay(5000);
+
   // This is where I would want to read in all of my configurations
 
   //Digital pin configurations
@@ -621,9 +646,24 @@ void setup()  {
     doneSignal();
   }
   
-  //adding delay for tesing when it goes through set up so I can catch the terminal traff
-  Serial.println("5s Set up delay");
-  delay(5000);
+  //BLuetooth Setup
+  /*
+  Serial.println(F("Initialising Bluefruit LE module"));
+  if ( !ble.begin() ){
+    error(F("Couldn't find Bluefruit, make sure it's in CoMmanD mode & check wiring?"));
+  }
+  Serial.println( F("OK!") );
+  if ( ! ble.factoryReset() ){ // Factory reset
+    error(F("Couldn't factory reset"));
+  }
+  ble.echo(false);   //Disable command echo from Bluefruit
+  ble.verbose(false);  //debug info is a little annoying after this point!
+  while (! ble.isConnected()) { //Wait for connection 
+      delay(500);
+  }
+  ble.sendCommandCheckOK("AT+HWModeLED=" MODE_LED_BEHAVIOUR); // LED Activity command
+  ble.setMode(BLUEFRUIT_MODE_DATA); // Set module to DATA mode
+  */
 
   //check digital clock once in setup
   digitalClockDisplay();
@@ -672,6 +712,8 @@ void setup()  {
 
 void loop() {
   digitalClockDisplay(); //serial print the time according to RTC
+  //ble.print("AT+BLEUARTTX="); //print over bluetooth
+  //ble.println("Play TKP2.WAV"); //print over bluetooth
   fault_check(); //If wavfile isn't playing, force on based on time
   Alarm.delay(1000); // wait one second between clock display
 }
