@@ -28,7 +28,7 @@ AudioControlSGTL5000     sgtl5000_1;
 #define FACTORYRESET_ENABLE         1
 #define MINIMUM_FIRMWARE_VERSION    "0.6.6"
 #define MODE_LED_BEHAVIOUR          "MODE"
-#define BLUEFRUIT_UART_MODE_PIN     12
+#define BLUEFRUIT_UART_MODE_PIN     -1 //the following sets the optional Mode pin, its recommended but not required
 Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
 
 //STATIC DEFINITIONS
@@ -46,15 +46,15 @@ bool USE_SAMP = true; //set to false if not using sample number
 #define BAUDE_RATE 115200
 
 //ALARM TIMES
-#define ALARM_1 "14:43:00"
-#define ALARM_2 "14:43:10"
-#define ALARM_3 "14:43:20"
-#define ALARM_4 "14:43:30"
-#define ALARM_5 "14:43:40"
-#define ALARM_6 "14:43:50"
-#define ALARM_7 "14:44:00"
-#define ALARM_8 "14:44:10"
-#define ALARM_9 "14:44:20"
+#define ALARM_1 "16:40:00"
+#define ALARM_2 "16:40:10"
+#define ALARM_3 "16:40:20"
+#define ALARM_4 "15:38:30"
+#define ALARM_5 "15:38:40"
+#define ALARM_6 "15:38:50"
+#define ALARM_7 "15:38:00"
+#define ALARM_8 "15:38:00"
+#define ALARM_9 "15:38:00"
 #define ALARM_10 "14:44:30"
 #define ALARM_11 "14:44:40"
 #define ALARM_12 "14:44:50"
@@ -237,7 +237,8 @@ void error(const __FlashStringHelper*err) {
 // Audio file 1
 void startPlayingAlarm1() {
   stopFile();
-  printAndLog("Alarm1");  
+  printAndLog("Alarm1");
+  ble.print("Alarm1");  
   sampleNumber = Entropy.random(1, NUM_SAMP+1);  
   playFile(makeFileNameString(ALARM_1_FILE_BASE, sampleNumber, USE_SAMP)); //make file name from alarm hour and sample number.
   delay(WAIT_AFTER_PLAY_MS);
@@ -246,6 +247,7 @@ void startPlayingAlarm1() {
 void startPlayingAlarm2() {
   stopFile();
   printAndLog("Alarm2");  
+  ble.print("Alarm2");
   sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_2_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
@@ -647,7 +649,6 @@ void setup()  {
   }
   
   //BLuetooth Setup
-  /*
   Serial.println(F("Initialising Bluefruit LE module"));
   if ( !ble.begin() ){
     error(F("Couldn't find Bluefruit, make sure it's in CoMmanD mode & check wiring?"));
@@ -663,7 +664,6 @@ void setup()  {
   }
   ble.sendCommandCheckOK("AT+HWModeLED=" MODE_LED_BEHAVIOUR); // LED Activity command
   ble.setMode(BLUEFRUIT_MODE_DATA); // Set module to DATA mode
-  */
 
   //check digital clock once in setup
   digitalClockDisplay();
@@ -712,8 +712,6 @@ void setup()  {
 
 void loop() {
   digitalClockDisplay(); //serial print the time according to RTC
-  //ble.print("AT+BLEUARTTX="); //print over bluetooth
-  //ble.println("Play TKP2.WAV"); //print over bluetooth
   fault_check(); //If wavfile isn't playing, force on based on time
   Alarm.delay(1000); // wait one second between clock display
 }

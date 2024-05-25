@@ -36,11 +36,10 @@ int mos_audio = 2;
 #define FACTORYRESET_ENABLE         1
 #define MINIMUM_FIRMWARE_VERSION    "0.6.6"
 #define MODE_LED_BEHAVIOUR          "MODE"
-#define BLUEFRUIT_UART_MODE_PIN 12
+#define BLUEFRUIT_UART_MODE_PIN 5
 
 //Hardware Serial Object
 Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
-int MODE_PIN = 12;
 
 // A small helper
 void error(const __FlashStringHelper*err) {
@@ -74,12 +73,13 @@ void setup() {
   }
 
   // Bluefruit
-    /* Initialise Bluetooth */
+  // Initialise Bluetooth
   Serial.println(F("Initialising Bluefruit LE module"));
   if ( !ble.begin() ){
-    error(F("Couldn't find Bluefruit, make sure it's in CoMmanD mode & check wiring?"));
+    Serial.println("Couldn't find Bluefruit, make sure it's in CoMmanD mode & check wiring?");
   }
   Serial.println( F("OK!") );
+/*
   if ( ! ble.factoryReset() ){ // Factory reset
     error(F("Couldn't factory reset"));
   }
@@ -90,14 +90,17 @@ void setup() {
   }
   ble.sendCommandCheckOK("AT+HWModeLED=" MODE_LED_BEHAVIOUR); // LED Activity command
   ble.setMode(BLUEFRUIT_MODE_DATA); // Set module to DATA mode 
+  //if I end the service before audio stuff happens, will it be okay
+  
+  */
 }
 
 void loop() {
   digitalWrite(mos_audio, HIGH);
   digitalWrite(mos_pwr, HIGH);
-  playFile("AHAF1.wav");  // filenames are always uppercase 8.3 format
-  ble.print("AT+BLEUARTTX=");
-  ble.println("Play TKP2.WAV");
+  playFile("TKAF1.wav");  // filenames are always uppercase 8.3 format
+  //ble.print("AT+BLEUARTTX=");
+  //ble.println("Play TKP2.WAV");
 }
 
 //Play file functions definition
