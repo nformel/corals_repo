@@ -642,7 +642,7 @@ void setup()  {
   // WAV Player Setup
   AudioMemory(8);
   sgtl5000_1.enable();
-  sgtl5000_1.volume(0.4);
+  sgtl5000_1.volume(0.3);
 
   //Initialize the entropy funcition
   Entropy.Initialize();   
