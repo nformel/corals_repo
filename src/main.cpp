@@ -29,6 +29,7 @@ AudioControlSGTL5000     sgtl5000_1;
 #define MINIMUM_FIRMWARE_VERSION    "0.6.6"
 #define MODE_LED_BEHAVIOUR          "MODE"
 #define BLUEFRUIT_UART_MODE_PIN     -1 //the following sets the optional Mode pin, its recommended but not required
+#define VERBOSE_MODE                false
 Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
 
 //STATIC DEFINITIONS
@@ -72,30 +73,30 @@ bool USE_SAMP = true; //set to false if not using sample number
 #define ALARM_24 "14:46:50"
 
 //SOUND FILE BASE NAMES
-#define ALARM_1_FILE_BASE "TKLN" 
-#define ALARM_2_FILE_BASE "TKLN" 
-#define ALARM_3_FILE_BASE "TKLN" 
-#define ALARM_4_FILE_BASE "TKLN" 
-#define ALARM_5_FILE_BASE "TKDN" 
-#define ALARM_6_FILE_BASE "TKDN" 
-#define ALARM_7_FILE_BASE "TKMN" 
-#define ALARM_8_FILE_BASE "TKMN" 
-#define ALARM_9_FILE_BASE "TKMN" 
-#define ALARM_10_FILE_BASE "TKMN" 
-#define ALARM_11_FILE_BASE "TKMN" 
-#define ALARM_12_FILE_BASE "TKMN" 
-#define ALARM_13_FILE_BASE "TKAF"
-#define ALARM_14_FILE_BASE "TKAF"
-#define ALARM_15_FILE_BASE "TKAF"
-#define ALARM_16_FILE_BASE "TKAF"
-#define ALARM_17_FILE_BASE "TKAF"
-#define ALARM_18_FILE_BASE "TKAF"
-#define ALARM_19_FILE_BASE "TKDK" 
-#define ALARM_20_FILE_BASE "TKDK" 
-#define ALARM_21_FILE_BASE "TKEV" 
-#define ALARM_22_FILE_BASE "TKEV" 
-#define ALARM_23_FILE_BASE "TKEV" 
-#define ALARM_24_FILE_BASE "TKEV" 
+#define ALARM_1_FILE_BASE "AHLN" 
+#define ALARM_2_FILE_BASE "AHLN" 
+#define ALARM_3_FILE_BASE "AHLN" 
+#define ALARM_4_FILE_BASE "AHLN" 
+#define ALARM_5_FILE_BASE "AHDN" 
+#define ALARM_6_FILE_BASE "AHDN" 
+#define ALARM_7_FILE_BASE "AHMN" 
+#define ALARM_8_FILE_BASE "AHMN" 
+#define ALARM_9_FILE_BASE "AHMN" 
+#define ALARM_10_FILE_BASE "AHMN" 
+#define ALARM_11_FILE_BASE "AHMN" 
+#define ALARM_12_FILE_BASE "AHMN" 
+#define ALARM_13_FILE_BASE "AHAF"
+#define ALARM_14_FILE_BASE "AHAF"
+#define ALARM_15_FILE_BASE "AHAF"
+#define ALARM_16_FILE_BASE "AHAF"
+#define ALARM_17_FILE_BASE "AHAF"
+#define ALARM_18_FILE_BASE "AHAF"
+#define ALARM_19_FILE_BASE "AHDK" 
+#define ALARM_20_FILE_BASE "AHDK" 
+#define ALARM_21_FILE_BASE "AHEV" 
+#define ALARM_22_FILE_BASE "AHEV" 
+#define ALARM_23_FILE_BASE "AHEV" 
+#define ALARM_24_FILE_BASE "AHEV" 
 
 // Wake Time
 int startH = 8;
@@ -180,7 +181,7 @@ const char * customAdd(std::string string, int b){
     return result;  
 }
 
-// construct playback file name from an hour + sample number (e.g. 18TKP1.wav) as a string
+// construct playback file name from an hour + sample number (e.g. 18AHP1.wav) as a string
 std::string makeFileNameString(std::string file_base, int samp, bool use_samp){
   if(use_samp == true){
     std::string result = file_base + std::to_string(samp) + ".wav";  
@@ -225,12 +226,6 @@ std::array<int,3> timeConstruct(std::string timeString){
   timeInts[2] = stoi(secString);
 
   return timeInts;
-}
-
-// A small helper for Bluefruit
-void error(const __FlashStringHelper*err) {
-  Serial.println(err);
-  while (1);
 }
 
 // ALARM FUNCTIONS
@@ -638,6 +633,28 @@ void setup()  {
   pinMode(mos_pwr, OUTPUT);
   pinMode(mos_audio, OUTPUT);
 
+  //Bluetooth Setup
+  Serial.println(F("Initialising Bluefruit LE module"));
+
+  if ( !ble.begin(VERBOSE_MODE) )
+  {
+    Serial.println("Couldn't find Bluefruit, make sure it's in CoMmanD mode & check wiring?");
+  }
+  Serial.println( F("OK!") );
+
+  if ( FACTORYRESET_ENABLE )
+  {
+    /* Perform a factory reset to make sure everything is in a known state */
+    Serial.println(F("Performing a factory reset: "));
+    if ( ! ble.factoryReset() ){
+      Serial.println("Couldn't factory reset");
+    }
+  }
+
+  /* Disable command echo from Bluefruit */
+  ble.echo(false);
+  Serial.println("finshed initalizing BLE");
+
   //SD card Setup
   SPI.setMOSI(SDCARD_MOSI_PIN);
   SPI.setSCK(SDCARD_SCK_PIN);
@@ -647,23 +664,6 @@ void setup()  {
     delay(1000);
     doneSignal();
   }
-  
-  //BLuetooth Setup
-  Serial.println(F("Initialising Bluefruit LE module"));
-  if ( !ble.begin() ){
-    error(F("Couldn't find Bluefruit, make sure it's in CoMmanD mode & check wiring?"));
-  }
-  Serial.println( F("OK!") );
-  if ( ! ble.factoryReset() ){ // Factory reset
-    error(F("Couldn't factory reset"));
-  }
-  ble.echo(false);   //Disable command echo from Bluefruit
-  ble.verbose(false);  //debug info is a little annoying after this point!
-  while (! ble.isConnected()) { //Wait for connection 
-      delay(500);
-  }
-  ble.sendCommandCheckOK("AT+HWModeLED=" MODE_LED_BEHAVIOUR); // LED Activity command
-  ble.setMode(BLUEFRUIT_MODE_DATA); // Set module to DATA mode
 
   //check digital clock once in setup
   digitalClockDisplay();
@@ -713,5 +713,7 @@ void setup()  {
 void loop() {
   digitalClockDisplay(); //serial print the time according to RTC
   fault_check(); //If wavfile isn't playing, force on based on time
+  ble.print("AT+BLEUARTTX=");
+  ble.println("Hello World!");
   Alarm.delay(1000); // wait one second between clock display
 }
