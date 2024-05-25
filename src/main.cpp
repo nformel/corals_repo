@@ -47,9 +47,9 @@ bool USE_SAMP = true; //set to false if not using sample number
 #define BAUDE_RATE 115200
 
 //ALARM TIMES
-#define ALARM_1 "16:40:00"
-#define ALARM_2 "16:40:10"
-#define ALARM_3 "16:40:20"
+#define ALARM_1 "10:58:00"
+#define ALARM_2 "10:58:10"
+#define ALARM_3 "10:58:20"
 #define ALARM_4 "15:38:30"
 #define ALARM_5 "15:38:40"
 #define ALARM_6 "15:38:50"
@@ -74,7 +74,7 @@ bool USE_SAMP = true; //set to false if not using sample number
 
 //SOUND FILE BASE NAMES
 #define ALARM_1_FILE_BASE "AHLN" 
-#define ALARM_2_FILE_BASE "AHLN" 
+#define ALARM_2_FILE_BASE "AHDN" 
 #define ALARM_3_FILE_BASE "AHLN" 
 #define ALARM_4_FILE_BASE "AHLN" 
 #define ALARM_5_FILE_BASE "AHDN" 
@@ -116,6 +116,7 @@ int sampleNumber = 0;
 
 // SD Logging file instantiation
 File myFile;
+String active_file = "no file";
 
 /////////////
 //FUNCTIONS//
@@ -199,6 +200,7 @@ void playFile(std::string filename) { //const char string[]
   printAndLog("Playing file:");
   printAndLog(filename);
   playWav1.play(filename.c_str());
+  active_file = filename.c_str();
   delay(10);
 }
 // Turn off sound
@@ -714,6 +716,6 @@ void loop() {
   digitalClockDisplay(); //serial print the time according to RTC
   fault_check(); //If wavfile isn't playing, force on based on time
   ble.print("AT+BLEUARTTX=");
-  ble.println("Hello World!");
+  ble.println(active_file);
   Alarm.delay(1000); // wait one second between clock display
 }
