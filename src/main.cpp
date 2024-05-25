@@ -24,13 +24,6 @@ AudioConnection          patchCord1(playWav1, 0, audioOutput, 0);
 AudioConnection          patchCord2(playWav1, 1, audioOutput, 1);
 AudioControlSGTL5000     sgtl5000_1;
 
-//Bluefruit setup
-#define FACTORYRESET_ENABLE         1
-#define MINIMUM_FIRMWARE_VERSION    "0.6.6"
-#define MODE_LED_BEHAVIOUR          "MODE"
-#define BLUEFRUIT_UART_MODE_PIN     12
-Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
-
 //STATIC DEFINITIONS
 #define SDCARD_CS_PIN    10
 #define SDCARD_MOSI_PIN  7
@@ -225,12 +218,6 @@ std::array<int,3> timeConstruct(std::string timeString){
   timeInts[2] = stoi(secString);
 
   return timeInts;
-}
-
-// A small helper for Bluefruit
-void error(const __FlashStringHelper*err) {
-  Serial.println(err);
-  while (1);
 }
 
 // ALARM FUNCTIONS
@@ -645,25 +632,6 @@ void setup()  {
     delay(1000);
     doneSignal();
   }
-  
-  //BLuetooth Setup
-  /*
-  Serial.println(F("Initialising Bluefruit LE module"));
-  if ( !ble.begin() ){
-    error(F("Couldn't find Bluefruit, make sure it's in CoMmanD mode & check wiring?"));
-  }
-  Serial.println( F("OK!") );
-  if ( ! ble.factoryReset() ){ // Factory reset
-    error(F("Couldn't factory reset"));
-  }
-  ble.echo(false);   //Disable command echo from Bluefruit
-  ble.verbose(false);  //debug info is a little annoying after this point!
-  while (! ble.isConnected()) { //Wait for connection 
-      delay(500);
-  }
-  ble.sendCommandCheckOK("AT+HWModeLED=" MODE_LED_BEHAVIOUR); // LED Activity command
-  ble.setMode(BLUEFRUIT_MODE_DATA); // Set module to DATA mode
-  */
 
   //check digital clock once in setup
   digitalClockDisplay();
@@ -712,8 +680,6 @@ void setup()  {
 
 void loop() {
   digitalClockDisplay(); //serial print the time according to RTC
-  //ble.print("AT+BLEUARTTX="); //print over bluetooth
-  //ble.println("Play TKP2.WAV"); //print over bluetooth
   fault_check(); //If wavfile isn't playing, force on based on time
   Alarm.delay(1000); // wait one second between clock display
 }
