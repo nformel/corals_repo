@@ -5,8 +5,6 @@
 #include <Arduino.h>
 #include <TimeLib.h>
 #include <TimeAlarms.h>
-#include "Adafruit_BLE.h"
-#include "Adafruit_BluefruitLE_UART.h"
 
 //Wav Player Setup
 #include <Audio.h>
