@@ -6,7 +6,7 @@
 #include <TimeLib.h>
 #include <TimeAlarms.h>
 
-//this is a comment
+//WAV Player setup
 #include <Audio.h>
 #include <Wire.h>
 #include <SPI.h>
