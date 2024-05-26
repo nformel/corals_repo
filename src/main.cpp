@@ -1,5 +1,4 @@
-//This code plays the loaded wav files on a schedule AND
-//will tell the TPL510 that it's done when Sound Off is trigered
+//Powers amp and does nothing
 
 //LIBRARIES
 #include <Arduino.h>
@@ -16,24 +15,16 @@
 #include <string>
 #include <array>
 using namespace std;
-AudioPlaySdWav           playWav1;
-AudioOutputI2S           audioOutput;
-AudioConnection          patchCord1(playWav1, 0, audioOutput, 0);
-AudioConnection          patchCord2(playWav1, 1, audioOutput, 1);
-AudioControlSGTL5000     sgtl5000_1;
-
-//STATIC DEFINITIONS
 #define SDCARD_CS_PIN    10
 #define SDCARD_MOSI_PIN  7
 #define SDCARD_SCK_PIN   14
+
+
+//STATIC DEFINITIONS
 #define WAIT_AFTER_PLAY_MS 250
-#define SEC_PRE_MIDNIGHT 86399
-#define MIDNIGHT_IN_SEC 86400
 int done_pin = 17;
 int mos_pwr = 3;
 int mos_audio = 2;
-bool USE_SAMP = true; //set to false if not using sample number
-#define NUM_SAMP 3 //number of samples for each FILE_BASE
 #define BAUDE_RATE 115200
 
 //ALARM TIMES
@@ -61,45 +52,6 @@ bool USE_SAMP = true; //set to false if not using sample number
 #define ALARM_22 "21:30:00"
 #define ALARM_23 "22:30:00"
 #define ALARM_24 "23:30:00"
-
-//SOUND FILE BASE NAMES
-#define ALARM_1_FILE_BASE "AHLN"
-#define ALARM_2_FILE_BASE "AHLN"
-#define ALARM_3_FILE_BASE "AHLN"
-#define ALARM_4_FILE_BASE "AHLN"
-#define ALARM_5_FILE_BASE "AHDN"
-#define ALARM_6_FILE_BASE "AHDN"
-#define ALARM_7_FILE_BASE "AHMN"
-#define ALARM_8_FILE_BASE "AHMN"
-#define ALARM_9_FILE_BASE "AHMN"
-#define ALARM_10_FILE_BASE "AHMN"
-#define ALARM_11_FILE_BASE "AHMN"
-#define ALARM_12_FILE_BASE "AHMN"
-#define ALARM_13_FILE_BASE "AHAF"
-#define ALARM_14_FILE_BASE "AHAF"
-#define ALARM_15_FILE_BASE "AHAF"
-#define ALARM_16_FILE_BASE "AHAF"
-#define ALARM_17_FILE_BASE "AHAF"
-#define ALARM_18_FILE_BASE "AHAF"
-#define ALARM_19_FILE_BASE "AHDK"
-#define ALARM_20_FILE_BASE "AHDK"
-#define ALARM_21_FILE_BASE "AHEV"
-#define ALARM_22_FILE_BASE "AHEV"
-#define ALARM_23_FILE_BASE "AHEV"
-#define ALARM_24_FILE_BASE "AHEV"
-
-// Wake Time
-int startH = 8;
-int startM = 0;
-int startS = 0;
-// Play Time (first alarm) [18:0:0 for real]
-int playH = 8;
-int playM = 5;
-int playS = 0;
-// Sleep Time
-int stopH = 16;
-int stopM = 59;
-int stopS = 0;
 
 // initialize the sample number as global variable
 int sampleNumber = 0;
@@ -164,39 +116,6 @@ void printAndLog(std::string string){
   logSD(string);
   }
 
-// Add an integer to a string
-const char * customAdd(std::string string, int b){
-    std::string concat = string + std::to_string(b);
-    const char * result = concat.c_str(); //convert string to pointer
-    return result;  
-}
-
-// construct playback file name from an hour + sample number (e.g. 18TKP1.wav) as a string
-std::string makeFileNameString(std::string file_base, int samp, bool use_samp){
-  if(use_samp == true){
-    std::string result = file_base + std::to_string(samp) + ".wav";  
-    return result;    
-  }
-  else{
-    std::string result = file_base + ".wav";  
-    return result;       
-  }
-}
-
-// WAV FILE PLAYER AND TPL5110 HELPER FUNCTIONS
-// playFile function from WAV file player
-void playFile(std::string filename) { //const char string[]
-  printAndLog("Playing file:");
-  printAndLog(filename);
-  playWav1.play(filename.c_str());
-  delay(10);
-}
-// Turn off sound
-void stopFile() {
-  printAndLog("Stopping audio"); //ths goes at end of stopFile block. putting here for testing.
-  playWav1.stop();
-  delay(250);
-}
 //TPL5110 done
 void doneSignal() {
   printAndLog("Send done signal to TPL5110");
@@ -221,386 +140,207 @@ std::array<int,3> timeConstruct(std::string timeString){
 // ALARM FUNCTIONS
 // Audio file 1
 void startPlayingAlarm1() {
-  stopFile();
   printAndLog("Alarm1");  
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);  
-  playFile(makeFileNameString(ALARM_1_FILE_BASE, sampleNumber, USE_SAMP)); //make file name from alarm hour and sample number.
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 2
 void startPlayingAlarm2() {
-  stopFile();
   printAndLog("Alarm2");  
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);
-  playFile(makeFileNameString(ALARM_2_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 3
 void startPlayingAlarm3() {
-  stopFile();
   printAndLog("Alarm3");  
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);
-  playFile(makeFileNameString(ALARM_3_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 4
 void startPlayingAlarm4() {
-  stopFile();
   printAndLog("Alarm4");  
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);
-  playFile(makeFileNameString(ALARM_4_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 5
 void startPlayingAlarm5() {
-  stopFile();
   printAndLog("Alarm5");  
-  sampleNumber = Entropy.random(1, NUM_SAMP+1); 
-  playFile(makeFileNameString(ALARM_5_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 6
 void startPlayingAlarm6() {
-  stopFile();
   printAndLog("Alarm6");  
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);
-  playFile(makeFileNameString(ALARM_6_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 7
 void startPlayingAlarm7() {
-  stopFile();
   printAndLog("Alarm7");  
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);
-  playFile(makeFileNameString(ALARM_7_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 8
 void startPlayingAlarm8() {
-  stopFile();
-  printAndLog("Alarm8");
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);
-  playFile(makeFileNameString(ALARM_8_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Alarm8");  
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 9
 void startPlayingAlarm9() {
-  stopFile();
-  printAndLog("Alarm9");
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);
-  playFile(makeFileNameString(ALARM_9_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Alarm9");  
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 10
 void startPlayingAlarm10() {
-  stopFile();  
-  printAndLog("Alarm10");
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);
-  playFile(makeFileNameString(ALARM_10_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Alarm10");  
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 11
 void startPlayingAlarm11() {
-  stopFile();
-  printAndLog("Alarm11");
-  sampleNumber = Entropy.random(1, NUM_SAMP+1); 
-  playFile(makeFileNameString(ALARM_11_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Alarm11");  
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 // Audio file 12
 void startPlayingAlarm12() {
-  stopFile();
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);  
-  printAndLog("Alarm12");
-  playFile(makeFileNameString(ALARM_12_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Alarm12");  
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 
 // Audio file 13
 void startPlayingAlarm13() {
-  stopFile();
-  printAndLog("Alarm13");
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);
-  playFile(makeFileNameString(ALARM_13_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Alarm13");  
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 
 // Audio file 14
 void startPlayingAlarm14() {
-  stopFile();
-  printAndLog("Alarm14");
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);
-  playFile(makeFileNameString(ALARM_14_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Alarm14");  
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 
 // Audio file 15
 void startPlayingAlarm15() {
-  stopFile();
-  printAndLog("Alarm15");
-  sampleNumber = Entropy.random(1, NUM_SAMP+1); 
-  playFile(makeFileNameString(ALARM_15_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Alarm15");  
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 
 // Audio file 16
 void startPlayingAlarm16() {
-  stopFile();
-  printAndLog("Alarm16");
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);
-  playFile(makeFileNameString(ALARM_16_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Alarm16");  
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 
 // Audio file 17
 void startPlayingAlarm17() {
-  stopFile();
-  printAndLog("Alarm17");
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);
-  playFile(makeFileNameString(ALARM_17_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Alarm17");  
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 
 // Audio file 18
 void startPlayingAlarm18() {
-  stopFile();
-  printAndLog("Alarm18");
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);
-  playFile(makeFileNameString(ALARM_18_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Alarm18");  
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 
 // Audio file 19
 void startPlayingAlarm19() {
-  stopFile();
-  printAndLog("Alarm19");
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);
-  playFile(makeFileNameString(ALARM_19_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Alarm19");  
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 
 // Audio file 20
 void startPlayingAlarm20() {
-  stopFile();
-  printAndLog("Alarm20");
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);
-  playFile(makeFileNameString(ALARM_20_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Alarm20");  
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 
 // Audio file 21
 void startPlayingAlarm21() {
-  stopFile();
-  printAndLog("Alarm21");
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);
-  playFile(makeFileNameString(ALARM_21_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Alarm21");  
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 
 // Audio file 22
 void startPlayingAlarm22() {
-  stopFile();
-  printAndLog("Alarm22");
-  sampleNumber = Entropy.random(1, NUM_SAMP+1); 
-  playFile(makeFileNameString(ALARM_22_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Alarm22");  
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 
 // Audio file 23
 void startPlayingAlarm23() {
-  stopFile();
-  printAndLog("Alarm23");
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);  
-  playFile(makeFileNameString(ALARM_23_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Alarm23");  
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
 }
 
 // Audio file 24
 void startPlayingAlarm24() {
-  stopFile();
-  printAndLog("Alarm24");
-  sampleNumber = Entropy.random(1, NUM_SAMP+1);
-  playFile(makeFileNameString(ALARM_24_FILE_BASE, sampleNumber, USE_SAMP));
+  printAndLog("Alarm24");  
+  printAndLog("Power amp, play nothing.");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
   delay(WAIT_AFTER_PLAY_MS);
-}
-
-//Convert hours minutes and seconds to seconds after midnight
-int time2sec (int h, int m, int s) {
-  int timeSec = s + m * 60 + h * 3600;
-  return timeSec;
-}
-
-//Function to determine if the present time is between two values
-bool time_between(std::string startTime, std::string stopTime) {
-
-  // Break up times into H, M and S
-  int inputH = hour();
-  int inputM = minute();
-  int inputS = second();
-
-  int startH = timeConstruct(startTime)[0];
-  int startM = timeConstruct(startTime)[1];
-  int startS = timeConstruct(startTime)[2];
-
-  int stopH = timeConstruct(stopTime)[0];
-  int stopM = timeConstruct(stopTime)[1];
-  int stopS = timeConstruct(stopTime)[2];
-
-  // convert times to seconds after midnight
-  int inputSeconds = time2sec(inputH, inputM, inputS);
-  int startSeconds = time2sec(startH, startM, startS);
-  int stopSeconds = time2sec(stopH, stopM, stopS);
-  bool rtrn = 0;
-  
-  if (startSeconds < stopSeconds) {
-    //Serial.println("Play interval does not include midnight");
-    if (0 <= inputSeconds && inputSeconds < startSeconds) {
-      //Serial.println("Case 1");
-      rtrn = 0;
-    }
-    else if (startSeconds <= inputSeconds && inputSeconds < stopSeconds) {
-      //Serial.println("Case 2");
-      rtrn = 1;
-    }
-    else if (stopSeconds <= inputSeconds && inputSeconds < SEC_PRE_MIDNIGHT) {
-      //Serial.println("Case 3");
-      rtrn = 0;
-    }
-  }
-  else if (startSeconds > stopSeconds) {
-    //Serial.println("Play interval includes midnight");
-    if (0 <= inputSeconds && inputSeconds < stopSeconds) {
-      //Serial.println("Case 1");
-      rtrn = 1;
-    }
-    else if (stopSeconds <= inputSeconds && inputSeconds < startSeconds) {
-      //Serial.println("Case 2");
-      rtrn = 0;
-    }
-    else if (startSeconds <= inputSeconds && inputSeconds <= MIDNIGHT_IN_SEC) {
-      //Serial.println("Case 3");
-      rtrn = 1;
-    }
-  }
-
-  return rtrn;
-}
-
-
-// FAULT CHECK
-void fault_check(){
-  // if no audio is playing, start the appropriate default track
-  if (playWav1.isPlaying() == false){ 
-  printAndLog("Fault Check: System not playing.");
-  
-    // Check if sampleNumber is set to non-zero (e.g. system has stayed awake since alarm tripped)
-    // If zero, then system went through a power cycle. Re-randomize.
-    if (sampleNumber == 0){
-      sampleNumber = Entropy.random(1, NUM_SAMP+1);
-    }
-  
-    //Changed this to go for 24 hrs
-    if (time_between(ALARM_1, ALARM_2)){
-      playFile(makeFileNameString(ALARM_1_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_2, ALARM_3)){
-      playFile(makeFileNameString(ALARM_2_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_3, ALARM_4)){
-      playFile(makeFileNameString(ALARM_3_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_4, ALARM_5)){
-      playFile(makeFileNameString(ALARM_4_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_5, ALARM_6)){
-      playFile(makeFileNameString(ALARM_5_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_6, ALARM_7)){
-      playFile(makeFileNameString(ALARM_6_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_7, ALARM_8)){
-      playFile(makeFileNameString(ALARM_7_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_8, ALARM_9)){
-      playFile(makeFileNameString(ALARM_8_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_9, ALARM_10)){
-      playFile(makeFileNameString(ALARM_9_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_10, ALARM_11)){
-      playFile(makeFileNameString(ALARM_10_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_11, ALARM_12)){
-      playFile(makeFileNameString(ALARM_11_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_12, ALARM_13)){
-      playFile(makeFileNameString(ALARM_12_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_13, ALARM_14)){
-      playFile(makeFileNameString(ALARM_13_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_14, ALARM_15)){
-      playFile(makeFileNameString(ALARM_14_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_15, ALARM_16)){
-      playFile(makeFileNameString(ALARM_15_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_16, ALARM_17)){
-      playFile(makeFileNameString(ALARM_16_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_17, ALARM_18)){
-      playFile(makeFileNameString(ALARM_17_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_18, ALARM_19)){
-      playFile(makeFileNameString(ALARM_18_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_19, ALARM_20)){
-      playFile(makeFileNameString(ALARM_19_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_20, ALARM_21)){
-      playFile(makeFileNameString(ALARM_20_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_21, ALARM_22)){
-      playFile(makeFileNameString(ALARM_21_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_22, ALARM_23)){
-      playFile(makeFileNameString(ALARM_22_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }     
-    else if (time_between(ALARM_23, ALARM_24)){
-      playFile(makeFileNameString(ALARM_23_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_24, ALARM_1)){
-      playFile(makeFileNameString(ALARM_24_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-  }
-
-  else { //Serial.println("No, I'm stuck here"); // Do nothing, system is on and playing. No issue.  
-  }
-  //Serial.println("I promise, it's here that I am stuck");
 }
 
 void setup()  {
@@ -629,24 +369,17 @@ void setup()  {
     Serial.println("Unable to access the SD card, go to sleep.");
     delay(1000);
     doneSignal();
-  }
+  }  
 
   //check digital clock once in setup
   digitalClockDisplay();
 
   // Turn on System
   printAndLog("Wake up system");
+  printAndLog("Power amp, play nothing.");
   digitalWrite(mos_pwr, HIGH);
   digitalWrite(mos_audio, HIGH);
-
-  // WAV Player Setup
-  AudioMemory(8);
-  sgtl5000_1.enable();
-  sgtl5000_1.volume(0.3);
-
-  //Initialize the entropy funcition
-  Entropy.Initialize();   
-
+ 
   //Set up alarms
   // using timeConstruct to insert hr, min and sec into Alarm definitions
   Alarm.alarmRepeat(timeConstruct(ALARM_1)[0], timeConstruct(ALARM_1)[1], timeConstruct(ALARM_1)[2], startPlayingAlarm1);
@@ -678,6 +411,5 @@ void setup()  {
 
 void loop() {
   digitalClockDisplay(); //serial print the time according to RTC
-  fault_check(); //If wavfile isn't playing, force on based on time
   Alarm.delay(1000); // wait one second between clock display
 }
