@@ -73,6 +73,7 @@ bool USE_SAMP = true; //set to false if not using sample number
 #define ALARM_24 "14:46:50"
 
 //SOUND FILE BASE NAMES
+//Nates testing comment
 #define ALARM_1_FILE_BASE "AHLN" 
 #define ALARM_2_FILE_BASE "AHDN" 
 #define ALARM_3_FILE_BASE "AHLN" 
