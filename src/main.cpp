@@ -25,7 +25,7 @@ AudioConnection          patchCord2(playWav1, 1, audioOutput, 1);
 AudioControlSGTL5000     sgtl5000_1;
 
 //Bluefruit setup
-#define FACTORYRESET_ENABLE         1
+#define FACTORYRESET_ENABLE         0
 #define MINIMUM_FIRMWARE_VERSION    "0.6.6"
 #define MODE_LED_BEHAVIOUR          "MODE"
 #define BLUEFRUIT_UART_MODE_PIN     -1 //the following sets the optional Mode pin, its recommended but not required
