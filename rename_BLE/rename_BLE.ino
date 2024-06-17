@@ -17,8 +17,16 @@
 #include "Adafruit_BLE.h"
 #include "Adafruit_BluefruitLE_SPI.h"
 #include "Adafruit_BluefruitLE_UART.h"
-#include "BluefruitConfig.h"
+//#include "BluefruitConfig.h"
 
+//Bluefruit setup
+#define FACTORYRESET_ENABLE         0
+#define MINIMUM_FIRMWARE_VERSION    "0.6.6"
+#define MODE_LED_BEHAVIOUR          "MODE"
+#define BLUEFRUIT_UART_MODE_PIN     -1 //the following sets the optional Mode pin, its recommended but not required
+#define VERBOSE_MODE                false
+Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
+#define BUFSIZE                        128   // Size of the read buffer for incoming data
 
 #if SOFTWARE_SERIAL_AVAILABLE
   #include <SoftwareSerial.h>
@@ -64,7 +72,7 @@ Adafruit_BluefruitLE_UART ble(bluefruitSS, BLUEFRUIT_UART_MODE_PIN,
 */
 
 /* ...or hardware serial, which does not need the RTS/CTS pins. Uncomment this line */
-Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
+//Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
 
 /* ...hardware SPI, using SCK/MOSI/MISO hardware SPI pins and then user selected CS/IRQ/RST */
 //Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
