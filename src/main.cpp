@@ -74,7 +74,7 @@ bool USE_SAMP = true; //set to false if not using sample number
 
 //SOUND FILE BASE NAMES
 #define ALARM_1_FILE_BASE "AHLN" 
-#define ALARM_2_FILE_BASE "AHDN" 
+#define ALARM_2_FILE_BASE "AHLN" 
 #define ALARM_3_FILE_BASE "AHLN" 
 #define ALARM_4_FILE_BASE "AHLN" 
 #define ALARM_5_FILE_BASE "AHDN" 
