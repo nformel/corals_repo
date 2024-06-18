@@ -199,7 +199,7 @@ std::string makeFileNameString(std::string file_base, int samp, bool use_samp){
 void playFile(std::string filename) { //const char string[]
   printAndLog("Playing file:");
   printAndLog(filename);
-  playWav1.play(filename.c_str());
+ // playWav1.play(filename.c_str()); //This should stop playing from being attempted
   active_file = filename.c_str();
   delay(10);
 }
@@ -714,8 +714,8 @@ void setup()  {
 
 void loop() {
   digitalClockDisplay(); //serial print the time according to RTC
-  // fault_check(); //If wavfile isn't playing, force on based on time
-  // ble.print("AT+BLEUARTTX=");
-  // ble.println(active_file);
+  fault_check(); //If wavfile isn't playing, force on based on time
+  ble.print("AT+BLEUARTTX=");
+  ble.println(active_file);
   Alarm.delay(1000); // wait one second between clock display
 }
