@@ -185,11 +185,11 @@ const char * customAdd(std::string string, int b){
 // construct playback file name from an hour + sample number (e.g. 18TKP1.wav) as a string
 std::string makeFileNameString(std::string file_base, int samp, bool use_samp){
   if(use_samp == true){
-    std::string result = file_base + std::to_string(samp) + ".wav";  
+    std::string result = "NOISE.wav";  
     return result;    
   }
   else{
-    std::string result = file_base + ".wav";  
+    std::string result = "NOISE.wav";  
     return result;       
   }
 }
