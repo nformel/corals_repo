@@ -714,7 +714,7 @@ void setup()  {
 
 void loop() {
   digitalClockDisplay(); //serial print the time according to RTC
-  fault_check(); //If wavfile isn't playing, force on based on time
+  //fault_check(); //If wavfile isn't playing, force on based on time
   ble.print("AT+BLEUARTTX=");
   ble.println(active_file);
   Alarm.delay(1000); // wait one second between clock display
