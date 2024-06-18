@@ -5,6 +5,8 @@
 #include <Arduino.h>
 #include <TimeLib.h>
 #include <TimeAlarms.h>
+#include "Adafruit_BLE.h"
+#include "Adafruit_BluefruitLE_UART.h"
 
 //Wav Player Setup
 #include <Audio.h>
@@ -22,6 +24,14 @@ AudioConnection          patchCord1(playWav1, 0, audioOutput, 0);
 AudioConnection          patchCord2(playWav1, 1, audioOutput, 1);
 AudioControlSGTL5000     sgtl5000_1;
 
+//Bluefruit setup
+#define FACTORYRESET_ENABLE         0
+#define MINIMUM_FIRMWARE_VERSION    "0.6.6"
+#define MODE_LED_BEHAVIOUR          "MODE"
+#define BLUEFRUIT_UART_MODE_PIN     -1 //the following sets the optional Mode pin, its recommended but not required
+#define VERBOSE_MODE                false
+Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
+
 //STATIC DEFINITIONS
 #define SDCARD_CS_PIN    10
 #define SDCARD_MOSI_PIN  7
@@ -32,7 +42,7 @@ AudioControlSGTL5000     sgtl5000_1;
 int done_pin = 17;
 int mos_pwr = 3;
 int mos_audio = 2;
-bool USE_SAMP = false; //set to false if not using sample number
+bool USE_SAMP = true; //set to false if not using sample number
 #define NUM_SAMP 3 //number of samples for each FILE_BASE
 #define BAUDE_RATE 115200
 
@@ -106,6 +116,7 @@ int sampleNumber = 0;
 
 // SD Logging file instantiation
 File myFile;
+String active_file = "no file";
 
 /////////////
 //FUNCTIONS//
@@ -189,6 +200,7 @@ void playFile(std::string filename) { //const char string[]
   printAndLog("Playing file:");
   printAndLog(filename);
   playWav1.play(filename.c_str());
+  active_file = filename.c_str();
   delay(10);
 }
 // Turn off sound
@@ -222,7 +234,8 @@ std::array<int,3> timeConstruct(std::string timeString){
 // Audio file 1
 void startPlayingAlarm1() {
   stopFile();
-  printAndLog("Alarm1");  
+  printAndLog("Alarm1");
+  ble.print("Alarm1");  
   sampleNumber = Entropy.random(1, NUM_SAMP+1);  
   playFile(makeFileNameString(ALARM_1_FILE_BASE, sampleNumber, USE_SAMP)); //make file name from alarm hour and sample number.
   delay(WAIT_AFTER_PLAY_MS);
@@ -231,6 +244,7 @@ void startPlayingAlarm1() {
 void startPlayingAlarm2() {
   stopFile();
   printAndLog("Alarm2");  
+  ble.print("Alarm2");
   sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_2_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
@@ -501,99 +515,99 @@ void fault_check(){
   
     //Changed this to go for 24 hrs
     if (time_between(ALARM_1, ALARM_2)){
-      playFile(makeFileNameString(ALARM_1_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_1_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_2, ALARM_3)){
-      playFile(makeFileNameString(ALARM_2_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_2_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_3, ALARM_4)){
-      playFile(makeFileNameString(ALARM_3_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_3_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_4, ALARM_5)){
-      playFile(makeFileNameString(ALARM_4_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_4_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_5, ALARM_6)){
-      playFile(makeFileNameString(ALARM_5_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_5_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_6, ALARM_7)){
-      playFile(makeFileNameString(ALARM_6_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_6_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_7, ALARM_8)){
-      playFile(makeFileNameString(ALARM_7_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_7_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_8, ALARM_9)){
-      playFile(makeFileNameString(ALARM_8_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_8_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_9, ALARM_10)){
-      playFile(makeFileNameString(ALARM_9_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_9_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_10, ALARM_11)){
-      playFile(makeFileNameString(ALARM_10_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_10_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_11, ALARM_12)){
-      playFile(makeFileNameString(ALARM_11_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_11_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_12, ALARM_13)){
-      playFile(makeFileNameString(ALARM_12_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_12_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_13, ALARM_14)){
-      playFile(makeFileNameString(ALARM_13_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_13_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_14, ALARM_15)){
-      playFile(makeFileNameString(ALARM_14_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_14_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_15, ALARM_16)){
-      playFile(makeFileNameString(ALARM_15_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_15_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_16, ALARM_17)){
-      playFile(makeFileNameString(ALARM_16_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_16_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_17, ALARM_18)){
-      playFile(makeFileNameString(ALARM_17_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_17_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_18, ALARM_19)){
-      playFile(makeFileNameString(ALARM_18_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_18_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_19, ALARM_20)){
-      playFile(makeFileNameString(ALARM_19_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_19_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_20, ALARM_21)){
-      playFile(makeFileNameString(ALARM_20_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_20_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_21, ALARM_22)){
-      playFile(makeFileNameString(ALARM_21_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_21_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_22, ALARM_23)){
-      playFile(makeFileNameString(ALARM_22_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_22_FILE_BASE, sampleNumber, true));
       delay(250);
     }     
     else if (time_between(ALARM_23, ALARM_24)){
-      playFile(makeFileNameString(ALARM_23_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_23_FILE_BASE, sampleNumber, true));
       delay(250);
     }
     else if (time_between(ALARM_24, ALARM_1)){
-      playFile(makeFileNameString(ALARM_24_FILE_BASE, sampleNumber, USE_SAMP));
+      playFile(makeFileNameString(ALARM_24_FILE_BASE, sampleNumber, true));
       delay(250);
     }
   }
@@ -621,6 +635,28 @@ void setup()  {
   pinMode(mos_pwr, OUTPUT);
   pinMode(mos_audio, OUTPUT);
 
+  //Bluetooth Setup
+  Serial.println(F("Initialising Bluefruit LE module"));
+
+  if ( !ble.begin(VERBOSE_MODE) )
+  {
+    Serial.println("Couldn't find Bluefruit, make sure it's in CoMmanD mode & check wiring?");
+  }
+  Serial.println( F("OK!") );
+
+  if ( FACTORYRESET_ENABLE )
+  {
+    /* Perform a factory reset to make sure everything is in a known state */
+    Serial.println(F("Performing a factory reset: "));
+    if ( ! ble.factoryReset() ){
+      Serial.println("Couldn't factory reset");
+    }
+  }
+
+  /* Disable command echo from Bluefruit */
+  ble.echo(false);
+  Serial.println("finshed initalizing BLE");
+
   //SD card Setup
   SPI.setMOSI(SDCARD_MOSI_PIN);
   SPI.setSCK(SDCARD_SCK_PIN);
@@ -642,7 +678,7 @@ void setup()  {
   // WAV Player Setup
   AudioMemory(8);
   sgtl5000_1.enable();
-  sgtl5000_1.volume(0.3);
+  sgtl5000_1.volume(0.75);
 
   //Initialize the entropy funcition
   Entropy.Initialize();   
@@ -679,5 +715,7 @@ void setup()  {
 void loop() {
   digitalClockDisplay(); //serial print the time according to RTC
   fault_check(); //If wavfile isn't playing, force on based on time
+  ble.print("AT+BLEUARTTX=");
+  ble.println(active_file);
   Alarm.delay(1000); // wait one second between clock display
 }
