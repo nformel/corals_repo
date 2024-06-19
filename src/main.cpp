@@ -31,6 +31,7 @@ AudioControlSGTL5000     sgtl5000_1;
 #define BLUEFRUIT_UART_MODE_PIN     -1 //the following sets the optional Mode pin, its recommended but not required
 #define VERBOSE_MODE                false
 Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
+const char* BLE_ModuleName = "RAPS7_BLE";  // Added for renaming Bluefruit module
 
 //STATIC DEFINITIONS
 #define SDCARD_CS_PIN    10
@@ -644,6 +645,10 @@ void setup()  {
   }
   Serial.println( F("OK!") );
 
+  //Set module name, NF Attempt after reset cleared module name
+  ble.print("AT+GAPDEVNAME=");
+  ble.println(BLE_ModuleName);
+
   if ( FACTORYRESET_ENABLE )
   {
     /* Perform a factory reset to make sure everything is in a known state */
@@ -712,10 +717,30 @@ void setup()  {
 
 }
 
+void digitalClockDisplayBLE() {
+  // Digital clock display of the time
+  ble.print(hour());         // Print hours over Bluetooth
+  ble.print(":");
+  printDigits(minute());     // Print minutes
+  ble.print(":");
+  printDigits(second());     // Print seconds
+  ble.println();             // Print a newline character over Bluetooth
+}
+
+void printDigitsBLE(int digits) {
+  // Helper function to print leading 0
+  if (digits < 10) {
+    ble.print('0');
+  }
+  ble.print(digits);
+}
+
 void loop() {
   digitalClockDisplay(); //serial print the time according to RTC
   fault_check(); //If wavfile isn't playing, force on based on time
   ble.print("AT+BLEUARTTX=");
   ble.println(active_file);
+  //digitalClockDisplayBLE();
+  ble.println();
   Alarm.delay(1000); // wait one second between clock display
 }
