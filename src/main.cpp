@@ -31,7 +31,7 @@ AudioControlSGTL5000     sgtl5000_1;
 #define BLUEFRUIT_UART_MODE_PIN     -1 //the following sets the optional Mode pin, its recommended but not required
 #define VERBOSE_MODE                false
 Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
-const char* BLE_ModuleName = "RAPS1_BLE";  // Added for renaming Bluefruit module
+const char* BLE_ModuleName = "RAPS8_BLE";  // Added for renaming Bluefruit module
 
 //STATIC DEFINITIONS
 #define SDCARD_CS_PIN    10
@@ -648,7 +648,7 @@ void setup()  {
   //Set module name, NF Attempt after reset cleared module name
   ble.print("AT+GAPDEVNAME=");
   ble.println(BLE_ModuleName);
-  
+
   if ( FACTORYRESET_ENABLE )
   {
     /* Perform a factory reset to make sure everything is in a known state */
