@@ -645,6 +645,10 @@ void setup()  {
   }
   Serial.println( F("OK!") );
 
+  //Set module name, NF Attempt after reset cleared module name
+  ble.print("AT+GAPDEVNAME=");
+  ble.println(BLE_ModuleName);
+  
   if ( FACTORYRESET_ENABLE )
   {
     /* Perform a factory reset to make sure everything is in a known state */
