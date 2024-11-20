@@ -515,99 +515,99 @@ void fault_check(){
   
     //Changed this to go for 24 hrs
     if (time_between(ALARM_1, ALARM_2)){
-      playFile(makeFileNameString(ALARM_1_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_1_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_2, ALARM_3)){
-      playFile(makeFileNameString(ALARM_2_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_2_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_3, ALARM_4)){
-      playFile(makeFileNameString(ALARM_3_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_3_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_4, ALARM_5)){
-      playFile(makeFileNameString(ALARM_4_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_4_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_5, ALARM_6)){
-      playFile(makeFileNameString(ALARM_5_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_5_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_6, ALARM_7)){
-      playFile(makeFileNameString(ALARM_6_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_6_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_7, ALARM_8)){
-      playFile(makeFileNameString(ALARM_7_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_7_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_8, ALARM_9)){
-      playFile(makeFileNameString(ALARM_8_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_8_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_9, ALARM_10)){
-      playFile(makeFileNameString(ALARM_9_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_9_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_10, ALARM_11)){
-      playFile(makeFileNameString(ALARM_10_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_10_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_11, ALARM_12)){
-      playFile(makeFileNameString(ALARM_11_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_11_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_12, ALARM_13)){
-      playFile(makeFileNameString(ALARM_12_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_12_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_13, ALARM_14)){
-      playFile(makeFileNameString(ALARM_13_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_13_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_14, ALARM_15)){
-      playFile(makeFileNameString(ALARM_14_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_14_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_15, ALARM_16)){
-      playFile(makeFileNameString(ALARM_15_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_15_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_16, ALARM_17)){
-      playFile(makeFileNameString(ALARM_16_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_16_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_17, ALARM_18)){
-      playFile(makeFileNameString(ALARM_17_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_17_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_18, ALARM_19)){
-      playFile(makeFileNameString(ALARM_18_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_18_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_19, ALARM_20)){
-      playFile(makeFileNameString(ALARM_19_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_19_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_20, ALARM_21)){
-      playFile(makeFileNameString(ALARM_20_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_20_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_21, ALARM_22)){
-      playFile(makeFileNameString(ALARM_21_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_21_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_22, ALARM_23)){
-      playFile(makeFileNameString(ALARM_22_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_22_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }     
     else if (time_between(ALARM_23, ALARM_24)){
-      playFile(makeFileNameString(ALARM_23_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_23_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
     else if (time_between(ALARM_24, ALARM_1)){
-      playFile(makeFileNameString(ALARM_24_FILE_BASE, sampleNumber, true));
+      playFile(makeFileNameString(ALARM_24_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
   }
