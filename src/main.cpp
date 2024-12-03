@@ -140,30 +140,16 @@ boolean readConfiguration() {
     // Put a nameIs() block here for each setting you have.
     
     // doDelay
-    if (cfg.nameIs("doDelay")) {
-      
+    if (cfg.nameIs("doDelay")) {     
       doDelay = cfg.getBooleanValue();
-      Serial.print("Read doDelay: ");
-      if (doDelay) {
-        Serial.println("true");
-      } else {
-        Serial.println("false");
-      }
     
     // waitMs integer
-    } else if (cfg.nameIs("waitMs")) {
-      
+    } else if (cfg.nameIs("waitMs")) { 
       waitMs = cfg.getIntValue();
-      Serial.print("Read waitMs: ");
-      Serial.println(waitMs);
-
+    
     // hello string (char *)
     } else if (cfg.nameIs("hello")) {
-      
-      // Dynamically allocate a copy of the string.
       hello = cfg.copyValue();
-      Serial.print("Read hello: ");
-      Serial.println(hello);
 
     } else {
       // report unrecognized names.
