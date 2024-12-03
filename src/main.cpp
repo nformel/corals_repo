@@ -58,6 +58,38 @@ char *hello;
 boolean doDelay;
 int waitMs;
 
+// my variables
+char *ALARM_1;
+char *ALARM_2;
+char *ALARM_3;
+char *ALARM_4;
+char *ALARM_5;
+char *ALARM_6;
+char *ALARM_7;
+char *ALARM_8;
+char *ALARM_9;
+char *ALARM_10;
+char *ALARM_11;
+char *ALARM_12;
+
+char *SAMPLE_LOCATION;
+int BAUDE_RATE;
+
+// Wake Time
+int startH;
+int startM;
+int startS;
+
+// Play Time (first alarm) [18:0:0 for real]
+int playH;
+int playM;
+int playS;
+
+// Sleep Time
+int stopH;
+int stopM;
+int stopS;
+
 boolean readConfiguration();
 
 void setup() {
@@ -69,6 +101,8 @@ void setup() {
   hello = 0;
   doDelay = false;
   waitMs = 0;
+
+  ALARM_1 = 0;
   
   
   // Setup the SD card 
@@ -103,11 +137,19 @@ void loop() {
   if (hello) {
 
     Serial.println(hello);
+    Serial.println(ALARM_1);
+    if (ALARM_1) {
+      Serial.println(ALARM_1);
+    }
+    else {
+      Serial.println("ALARM_1 not found");  
+    }   
     if (doDelay) {
       delay(waitMs);
     }
 
   }
+ 
   
 }
 
@@ -139,19 +181,118 @@ boolean readConfiguration() {
     
     // Put a nameIs() block here for each setting you have.
     
-    // doDelay
-    if (cfg.nameIs("doDelay")) {     
+    // OG Settings
+    if (cfg.nameIs("doDelay")) {
       doDelay = cfg.getBooleanValue();
-    
+    }
     // waitMs integer
-    } else if (cfg.nameIs("waitMs")) { 
+    else if (cfg.nameIs("waitMs")) {
       waitMs = cfg.getIntValue();
-    
+    }
     // hello string (char *)
-    } else if (cfg.nameIs("hello")) {
+    else if (cfg.nameIs("hello")) {
       hello = cfg.copyValue();
+    }
 
-    } else {
+    // Alarm times
+    else if (cfg.nameIs("ALARM_1")) {     
+      ALARM_1 = cfg.copyValue();
+    }
+    
+    else if (cfg.nameIs("ALARM_2")) {     
+      ALARM_2 = cfg.copyValue();
+    }    
+
+    else if (cfg.nameIs("ALARM_3")) {     
+      ALARM_3 = cfg.copyValue();
+    }
+
+    else if (cfg.nameIs("ALARM_4")) {     
+      ALARM_4 = cfg.copyValue();
+    }    
+
+    else if (cfg.nameIs("ALARM_5")) {     
+      ALARM_5 = cfg.copyValue();
+    }
+  
+      else if (cfg.nameIs("ALARM_6")) {     
+      ALARM_6 = cfg.copyValue();
+    }    
+
+    else if (cfg.nameIs("ALARM_7")) {     
+      ALARM_7 = cfg.copyValue();
+    }
+
+    else if (cfg.nameIs("ALARM_8")) {     
+      ALARM_8 = cfg.copyValue();
+    }    
+
+    else if (cfg.nameIs("ALARM_9")) {     
+      ALARM_9 = cfg.copyValue();
+    }
+
+    else if (cfg.nameIs("ALARM_10")) {     
+      ALARM_10 = cfg.copyValue();
+    }
+
+    else if (cfg.nameIs("ALARM_11")) {     
+      ALARM_11 = cfg.copyValue();
+    }    
+
+    else if (cfg.nameIs("ALARM_12")) {     
+      ALARM_12 = cfg.copyValue();
+    }
+
+    // Sample location
+    else if (cfg.nameIs("SAMPLE_LOCATION")) {     
+      SAMPLE_LOCATION = cfg.copyValue();
+    }
+
+    // Baude Rate
+    else if (cfg.nameIs("BAUDE_RATE")) { 
+      BAUDE_RATE = cfg.getIntValue();
+    }
+    
+    // Wake time
+    else if (cfg.nameIs("startH")) { 
+      startH = cfg.getIntValue();
+    }
+
+    else if (cfg.nameIs("startM")) { 
+      startM = cfg.getIntValue();
+    }
+
+    else if (cfg.nameIs("StartS")) { 
+      startS = cfg.getIntValue();
+    }    
+
+    // Play time
+    else if (cfg.nameIs("playH")) { 
+      playH = cfg.getIntValue();
+    }
+
+    else if (cfg.nameIs("playM")) { 
+      playM = cfg.getIntValue();
+    }
+
+    else if (cfg.nameIs("playS")) { 
+      playS = cfg.getIntValue();
+    }  
+
+    // Stop time
+    else if (cfg.nameIs("stopH")) { 
+      stopH = cfg.getIntValue();
+    }
+
+    else if (cfg.nameIs("stopM")) { 
+      stopM = cfg.getIntValue();
+    }
+
+    else if (cfg.nameIs("stopM")) { 
+      stopS = cfg.getIntValue();
+    }
+
+    else {
       // report unrecognized names.
       Serial.print("Unknown name in config: ");
       Serial.println(cfg.getName());
