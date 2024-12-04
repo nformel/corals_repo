@@ -94,6 +94,7 @@ boolean readConfiguration();
 
 void setup() {
   Serial.begin(9600);
+  while(Serial.available()==0) {};
 
   pinMode(pinSelectSD, OUTPUT);
 
@@ -102,7 +103,30 @@ void setup() {
   doDelay = false;
   waitMs = 0;
 
+  // my variables
   ALARM_1 = 0;
+  ALARM_2 = 0;
+  ALARM_3 = 0;
+  ALARM_4 = 0;
+  ALARM_5 = 0;
+  ALARM_6 = 0;
+  ALARM_7 = 0;
+  ALARM_8 = 0;
+  ALARM_9 = 0;
+  ALARM_10 = 0;
+  ALARM_11 = 0;
+  ALARM_12 = 0;
+  SAMPLE_LOCATION = 0;
+  BAUDE_RATE = 0;
+  startH = 0;
+  startM = 0;
+  startS = 0;
+  playH = 0;
+  playM = 0;
+  playS = 0;
+  stopH = 0;
+  stopM = 0;
+  stopS = 0;
   
   
   // Setup the SD card 
@@ -134,23 +158,12 @@ void loop() {
    * print the hello message,
    * then wait the configured time.
    */
-  if (hello) {
+  Serial.print("hello: ");
+  Serial.println(hello);
 
-    Serial.println(hello);
-    Serial.println(ALARM_1);
-    if (ALARM_1) {
-      Serial.println(ALARM_1);
-    }
-    else {
-      Serial.println("ALARM_1 not found");  
-    }   
-    if (doDelay) {
-      delay(waitMs);
-    }
-
+  if (doDelay) {
+    delay(waitMs);
   }
- 
-  
 }
 
 /*
@@ -197,99 +210,145 @@ boolean readConfiguration() {
     // Alarm times
     else if (cfg.nameIs("ALARM_1")) {     
       ALARM_1 = cfg.copyValue();
+      Serial.print("ALARM_1: ");
+      Serial.println(ALARM_1);      
     }
     
     else if (cfg.nameIs("ALARM_2")) {     
       ALARM_2 = cfg.copyValue();
+      Serial.print("ALARM_2: ");
+      Serial.println(ALARM_2);
     }    
 
     else if (cfg.nameIs("ALARM_3")) {     
       ALARM_3 = cfg.copyValue();
+      Serial.print("ALARM_3: ");
+      Serial.println(ALARM_3);      
     }
 
     else if (cfg.nameIs("ALARM_4")) {     
       ALARM_4 = cfg.copyValue();
+      Serial.print("ALARM_4: ");
+      Serial.println(ALARM_4);
     }    
 
     else if (cfg.nameIs("ALARM_5")) {     
       ALARM_5 = cfg.copyValue();
+      Serial.print("ALARM_5: ");
+      Serial.println(ALARM_5);
     }
   
       else if (cfg.nameIs("ALARM_6")) {     
       ALARM_6 = cfg.copyValue();
+      Serial.print("ALARM_6: ");
+      Serial.println(ALARM_6);
     }    
 
     else if (cfg.nameIs("ALARM_7")) {     
       ALARM_7 = cfg.copyValue();
+      Serial.print("ALARM_7: ");
+      Serial.println(ALARM_7);
     }
 
     else if (cfg.nameIs("ALARM_8")) {     
       ALARM_8 = cfg.copyValue();
+      Serial.print("ALARM_8: ");
+      Serial.println(ALARM_8);
     }    
 
     else if (cfg.nameIs("ALARM_9")) {     
       ALARM_9 = cfg.copyValue();
+      Serial.print("ALARM_9: ");
+      Serial.println(ALARM_9);
     }
 
     else if (cfg.nameIs("ALARM_10")) {     
       ALARM_10 = cfg.copyValue();
+      Serial.print("ALARM_10: ");
+      Serial.println(ALARM_10);
     }
 
     else if (cfg.nameIs("ALARM_11")) {     
       ALARM_11 = cfg.copyValue();
+      Serial.print("ALARM_11: ");
+      Serial.println(ALARM_11);
     }    
 
     else if (cfg.nameIs("ALARM_12")) {     
       ALARM_12 = cfg.copyValue();
+      Serial.print("ALARM_12: ");
+      Serial.println(ALARM_12);
     }
 
     // Sample location
     else if (cfg.nameIs("SAMPLE_LOCATION")) {     
       SAMPLE_LOCATION = cfg.copyValue();
+      Serial.print("SAMPLE_LOCATION: ");
+      Serial.println(SAMPLE_LOCATION);
     }
 
     // Baude Rate
     else if (cfg.nameIs("BAUDE_RATE")) { 
       BAUDE_RATE = cfg.getIntValue();
+      Serial.print("BAUDE_RATE: ");
+      Serial.println(BAUDE_RATE);
     }
     
     // Wake time
     else if (cfg.nameIs("startH")) { 
       startH = cfg.getIntValue();
+      Serial.print("startH: ");
+      Serial.println(startH);
     }
 
     else if (cfg.nameIs("startM")) { 
       startM = cfg.getIntValue();
+      Serial.print("startM: ");
+      Serial.println(startM);
     }
 
-    else if (cfg.nameIs("StartS")) { 
+    else if (cfg.nameIs("startS")) { 
       startS = cfg.getIntValue();
+      Serial.print("startS: ");
+      Serial.println(startS);
     }    
 
     // Play time
     else if (cfg.nameIs("playH")) { 
       playH = cfg.getIntValue();
+      Serial.print("playH: ");
+      Serial.println(playH);
     }
 
     else if (cfg.nameIs("playM")) { 
       playM = cfg.getIntValue();
+      Serial.print("playM: ");
+      Serial.println(playM);
     }
 
     else if (cfg.nameIs("playS")) { 
       playS = cfg.getIntValue();
+      Serial.print("playS: ");
+      Serial.println(playS);
     }  
 
     // Stop time
     else if (cfg.nameIs("stopH")) { 
       stopH = cfg.getIntValue();
+      Serial.print("stopH: ");
+      Serial.println(stopH);
     }
 
     else if (cfg.nameIs("stopM")) { 
       stopM = cfg.getIntValue();
+      Serial.print("stopM: ");
+      Serial.println(stopM);
     }
 
-    else if (cfg.nameIs("stopM")) { 
+    else if (cfg.nameIs("stopS")) { 
       stopS = cfg.getIntValue();
+      Serial.print("stopS: ");
+      Serial.println(stopS);
     }
 
     else {
