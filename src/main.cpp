@@ -7,6 +7,7 @@
 #include <TimeAlarms.h>
 #include "Adafruit_BLE.h"
 #include "Adafruit_BluefruitLE_UART.h"
+#include <SDConfig.h>
 
 //Wav Player Setup
 #include <Audio.h>
@@ -47,6 +48,7 @@ bool USE_SAMP = false; //set to false if not using sample number
 // #define BAUDE_RATE 115200
 
 //OG ALARM TIMES
+#define ALARM_25 "00:30:00"
 /*
 #define ALARM_1 "00:30:00"
 #define ALARM_2 "01:30:00"
@@ -88,6 +90,18 @@ char *ALARM_9;
 char *ALARM_10;
 char *ALARM_11;
 char *ALARM_12;
+char *ALARM_13;
+char *ALARM_14;
+char *ALARM_15;
+char *ALARM_16;
+char *ALARM_17;
+char *ALARM_18;
+char *ALARM_19;
+char *ALARM_20;
+char *ALARM_21;
+char *ALARM_22;
+char *ALARM_23;
+char *ALARM_24;
 
 char *SAMPLE_LOCATION;
 int BAUDE_RATE;
@@ -134,10 +148,18 @@ int stopS = 0;
 
 // initialize the sample number as global variable
 int sampleNumber = 0;
+boolean didReadConfig;
+char *hello;
+boolean doDelay;
+int waitMs;
 
 // SD Logging file instantiation
 File myFile;
 String active_file = "no file";
+
+// SD Config instatiations 
+const char CONFIG_FILE[] = "example.cfg";
+boolean readConfiguration();
 
 /////////////
 //FUNCTIONS//
@@ -249,6 +271,268 @@ std::array<int,3> timeConstruct(std::string timeString){
   timeInts[2] = stoi(secString);
 
   return timeInts;
+}
+
+// Read Config function
+// Read our settings from our SD configuration file.
+//Returns true if successful, false if it failed.
+boolean readConfiguration() {
+  const uint8_t CONFIG_LINE_LENGTH = 127;
+  
+  // The open configuration file.
+  SDConfig cfg;
+  
+  // Open the configuration file.
+  if (!cfg.begin(CONFIG_FILE, CONFIG_LINE_LENGTH)) {
+    Serial.print("Failed to open configuration file: ");
+    Serial.println(CONFIG_FILE);
+    return false;
+  }
+  
+  // Read each setting from the file.
+  while (cfg.readNextSetting()) {
+    
+    // Put a nameIs() block here for each setting you have.
+    
+    // OG Settings
+    if (cfg.nameIs("doDelay")) {
+      doDelay = cfg.getBooleanValue();
+    }
+    // waitMs integer
+    else if (cfg.nameIs("waitMs")) {
+      waitMs = cfg.getIntValue();
+    }
+    // hello string (char *)
+    else if (cfg.nameIs("hello")) {
+      hello = cfg.copyValue();
+    }
+
+    // Alarm times
+    else if (cfg.nameIs("ALARM_1")) {     
+      ALARM_1 = cfg.copyValue();
+      Serial.print("ALARM_1: ");
+      Serial.println(ALARM_1);      
+    }
+    
+    else if (cfg.nameIs("ALARM_2")) {     
+      ALARM_2 = cfg.copyValue();
+      Serial.print("ALARM_2: ");
+      Serial.println(ALARM_2);
+    }    
+
+    else if (cfg.nameIs("ALARM_3")) {     
+      ALARM_3 = cfg.copyValue();
+      Serial.print("ALARM_3: ");
+      Serial.println(ALARM_3);      
+    }
+
+    else if (cfg.nameIs("ALARM_4")) {     
+      ALARM_4 = cfg.copyValue();
+      Serial.print("ALARM_4: ");
+      Serial.println(ALARM_4);
+    }    
+
+    else if (cfg.nameIs("ALARM_5")) {     
+      ALARM_5 = cfg.copyValue();
+      Serial.print("ALARM_5: ");
+      Serial.println(ALARM_5);
+    }
+  
+      else if (cfg.nameIs("ALARM_6")) {     
+      ALARM_6 = cfg.copyValue();
+      Serial.print("ALARM_6: ");
+      Serial.println(ALARM_6);
+    }    
+
+    else if (cfg.nameIs("ALARM_7")) {     
+      ALARM_7 = cfg.copyValue();
+      Serial.print("ALARM_7: ");
+      Serial.println(ALARM_7);
+    }
+
+    else if (cfg.nameIs("ALARM_8")) {     
+      ALARM_8 = cfg.copyValue();
+      Serial.print("ALARM_8: ");
+      Serial.println(ALARM_8);
+    }    
+
+    else if (cfg.nameIs("ALARM_9")) {     
+      ALARM_9 = cfg.copyValue();
+      Serial.print("ALARM_9: ");
+      Serial.println(ALARM_9);
+    }
+
+    else if (cfg.nameIs("ALARM_10")) {     
+      ALARM_10 = cfg.copyValue();
+      Serial.print("ALARM_10: ");
+      Serial.println(ALARM_10);
+    }
+
+    else if (cfg.nameIs("ALARM_11")) {     
+      ALARM_11 = cfg.copyValue();
+      Serial.print("ALARM_11: ");
+      Serial.println(ALARM_11);
+    }    
+
+    else if (cfg.nameIs("ALARM_12")) {     
+      ALARM_12 = cfg.copyValue();
+      Serial.print("ALARM_12: ");
+      Serial.println(ALARM_12);
+    }
+
+    else if (cfg.nameIs("ALARM_13")) {     
+      ALARM_13 = cfg.copyValue();
+      Serial.print("ALARM_13: ");
+      Serial.println(ALARM_13);      
+    }
+    
+    else if (cfg.nameIs("ALARM_14")) {     
+      ALARM_14 = cfg.copyValue();
+      Serial.print("ALARM_14: ");
+      Serial.println(ALARM_14);
+    }    
+
+    else if (cfg.nameIs("ALARM_15")) {     
+      ALARM_15 = cfg.copyValue();
+      Serial.print("ALARM_15: ");
+      Serial.println(ALARM_15);      
+    }
+
+    else if (cfg.nameIs("ALARM_16")) {     
+      ALARM_16 = cfg.copyValue();
+      Serial.print("ALARM_16: ");
+      Serial.println(ALARM_16);
+    }    
+
+    else if (cfg.nameIs("ALARM_17")) {     
+      ALARM_17 = cfg.copyValue();
+      Serial.print("ALARM_17: ");
+      Serial.println(ALARM_17);
+    }
+  
+      else if (cfg.nameIs("ALARM_18")) {     
+      ALARM_18 = cfg.copyValue();
+      Serial.print("ALARM_18: ");
+      Serial.println(ALARM_18);
+    }    
+
+    else if (cfg.nameIs("ALARM_19")) {     
+      ALARM_19 = cfg.copyValue();
+      Serial.print("ALARM_19: ");
+      Serial.println(ALARM_19);
+    }
+
+    else if (cfg.nameIs("ALARM_20")) {     
+      ALARM_20 = cfg.copyValue();
+      Serial.print("ALARM_20: ");
+      Serial.println(ALARM_20);
+    }    
+
+    else if (cfg.nameIs("ALARM_21")) {     
+      ALARM_21 = cfg.copyValue();
+      Serial.print("ALARM_21: ");
+      Serial.println(ALARM_21);
+    }
+
+    else if (cfg.nameIs("ALARM_22")) {     
+      ALARM_22 = cfg.copyValue();
+      Serial.print("ALARM_22: ");
+      Serial.println(ALARM_22);
+    }
+
+    else if (cfg.nameIs("ALARM_23")) {     
+      ALARM_23 = cfg.copyValue();
+      Serial.print("ALARM_23: ");
+      Serial.println(ALARM_23);
+    }    
+
+    else if (cfg.nameIs("ALARM_24")) {     
+      ALARM_24 = cfg.copyValue();
+      Serial.print("ALARM_24: ");
+      Serial.println(ALARM_24);
+    }
+    // Sample location
+    else if (cfg.nameIs("SAMPLE_LOCATION")) {     
+      SAMPLE_LOCATION = cfg.copyValue();
+      Serial.print("SAMPLE_LOCATION: ");
+      Serial.println(SAMPLE_LOCATION);
+    }
+
+    // Baude Rate
+    else if (cfg.nameIs("BAUDE_RATE")) { 
+      BAUDE_RATE = cfg.getIntValue();
+      Serial.print("BAUDE_RATE: ");
+      Serial.println(BAUDE_RATE);
+    }
+    
+    // Wake time
+    else if (cfg.nameIs("startH")) { 
+      startH = cfg.getIntValue();
+      Serial.print("startH: ");
+      Serial.println(startH);
+    }
+
+    else if (cfg.nameIs("startM")) { 
+      startM = cfg.getIntValue();
+      Serial.print("startM: ");
+      Serial.println(startM);
+    }
+
+    else if (cfg.nameIs("startS")) { 
+      startS = cfg.getIntValue();
+      Serial.print("startS: ");
+      Serial.println(startS);
+    }    
+
+    // Play time
+    else if (cfg.nameIs("playH")) { 
+      playH = cfg.getIntValue();
+      Serial.print("playH: ");
+      Serial.println(playH);
+    }
+
+    else if (cfg.nameIs("playM")) { 
+      playM = cfg.getIntValue();
+      Serial.print("playM: ");
+      Serial.println(playM);
+    }
+
+    else if (cfg.nameIs("playS")) { 
+      playS = cfg.getIntValue();
+      Serial.print("playS: ");
+      Serial.println(playS);
+    }  
+
+    // Stop time
+    else if (cfg.nameIs("stopH")) { 
+      stopH = cfg.getIntValue();
+      Serial.print("stopH: ");
+      Serial.println(stopH);
+    }
+
+    else if (cfg.nameIs("stopM")) { 
+      stopM = cfg.getIntValue();
+      Serial.print("stopM: ");
+      Serial.println(stopM);
+    }
+
+    else if (cfg.nameIs("stopS")) { 
+      stopS = cfg.getIntValue();
+      Serial.print("stopS: ");
+      Serial.println(stopS);
+    }
+
+    else {
+      // report unrecognized names.
+      Serial.print("Unknown name in config: ");
+      Serial.println(cfg.getName());
+    }
+  }
+  
+  // clean up
+  cfg.end();
+  
+  return true;
 }
 
 // ALARM FUNCTIONS
@@ -641,6 +925,73 @@ void fault_check(){
 void setup()  {
   // set the Time library to use Teensy 3.0's RTC to keep time
   setSyncProvider(getTeensy3Time);
+
+  // This is where I would want to read in all of my configurations
+  while(Serial.available()==0) {
+      Serial.println("Send any charcter to continue");
+      delay(1000);
+  }
+
+  pinMode(SDCARD_CS_PIN, OUTPUT);
+
+  didReadConfig = false; // might be able to get rid of all these instantiations
+  hello = 0;
+  doDelay = false;
+  waitMs = 0;
+  ALARM_1 = 0;
+  ALARM_2 = 0;
+  ALARM_3 = 0;
+  ALARM_4 = 0;
+  ALARM_5 = 0;
+  ALARM_6 = 0;
+  ALARM_7 = 0;
+  ALARM_8 = 0;
+  ALARM_9 = 0;
+  ALARM_10 = 0;
+  ALARM_11 = 0;
+  ALARM_12 = 0;
+  ALARM_13 = 0;
+  ALARM_14 = 0;
+  ALARM_15 = 0;
+  ALARM_16 = 0;
+  ALARM_17 = 0;
+  ALARM_18 = 0;
+  ALARM_19 = 0;
+  ALARM_20 = 0;
+  ALARM_21 = 0;
+  ALARM_22 = 0;
+  ALARM_23 = 0;
+  ALARM_24 = 0;  
+  SAMPLE_LOCATION = 0;
+  BAUDE_RATE = 0;
+  startH = 0;
+  startM = 0;
+  startS = 0;
+  playH = 0;
+  playM = 0;
+  playS = 0;
+  stopH = 0;
+  stopM = 0;
+  stopS = 0;
+  
+  // Setup the SD card
+  SPI.setMOSI(SDCARD_MOSI_PIN);
+  SPI.setSCK(SDCARD_SCK_PIN);   
+  Serial.println("Calling SD.begin()...");
+  if (!SD.begin(SDCARD_CS_PIN)) {
+    Serial.println("SD.begin() failed. Check: ");
+    Serial.println("  card insertion,");
+    Serial.println("  SD shield I/O pins and chip select,");
+    Serial.println("  card formatting.");
+    Serial.println("Unable to access the SD card, go to sleep.");
+    delay(1000);
+    doneSignal();    
+  //  return; dont think I need this if Im sending a done signal
+  }
+  Serial.println("...succeeded.");
+
+  // Read our configuration from the SD card file.
+  didReadConfig = readConfiguration();  
   
   // Set up serial for debugging
   Serial.begin(BAUDE_RATE);
@@ -648,8 +999,6 @@ void setup()  {
   //adding delay for tesing when it goes through set up so I can catch the terminal traff
   Serial.println("5s Set up delay");
   delay(5000);
-
-  // This is where I would want to read in all of my configurations
 
   //Digital pin configurations
   pinMode(done_pin, OUTPUT);
@@ -678,16 +1027,6 @@ void setup()  {
   ble.echo(false);
   Serial.println("finshed initalizing BLE");
 
-  //SD card Setup
-  SPI.setMOSI(SDCARD_MOSI_PIN);
-  SPI.setSCK(SDCARD_SCK_PIN);
-  if (!(SD.begin(SDCARD_CS_PIN))) {
-    // stop here, but print a message repetitively
-    Serial.println("Unable to access the SD card, go to sleep.");
-    delay(1000);
-    doneSignal();
-  }
-
   //check digital clock once in setup
   digitalClockDisplay();
 
@@ -706,7 +1045,7 @@ void setup()  {
 
   //Set up alarms
   // using timeConstruct to insert hr, min and sec into Alarm definitions
-  Alarm.alarmRepeat(timeConstruct(ALARM_1)[0], timeConstruct(ALARM_1)[1], timeConstruct(ALARM_1)[2], startPlayingAlarm1);
+  Alarm.alarmRepeat(timeConstruct(ALARM_25)[0], timeConstruct(ALARM_25)[1], timeConstruct(ALARM_25)[2], startPlayingAlarm1);
   Alarm.alarmRepeat(timeConstruct(ALARM_2)[0], timeConstruct(ALARM_2)[1], timeConstruct(ALARM_2)[2], startPlayingAlarm2); 
   Alarm.alarmRepeat(timeConstruct(ALARM_3)[0], timeConstruct(ALARM_3)[1], timeConstruct(ALARM_3)[2], startPlayingAlarm3); 
   Alarm.alarmRepeat(timeConstruct(ALARM_4)[0], timeConstruct(ALARM_4)[1], timeConstruct(ALARM_4)[2], startPlayingAlarm4);
@@ -731,6 +1070,7 @@ void setup()  {
   Alarm.alarmRepeat(timeConstruct(ALARM_23)[0], timeConstruct(ALARM_23)[1], timeConstruct(ALARM_23)[2], startPlayingAlarm23);
   Alarm.alarmRepeat(timeConstruct(ALARM_24)[0], timeConstruct(ALARM_24)[1], timeConstruct(ALARM_24)[2], startPlayingAlarm24);
 
+  Serial.println("successfully made all alarms");
 }
 
 void loop() {
