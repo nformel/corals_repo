@@ -44,9 +44,10 @@ int mos_pwr = 3;
 int mos_audio = 2;
 bool USE_SAMP = false; //set to false if not using sample number
 #define NUM_SAMP 3 //number of samples for each FILE_BASE
-#define BAUDE_RATE 115200
+// #define BAUDE_RATE 115200
 
-//ALARM TIMES
+//OG ALARM TIMES
+/*
 #define ALARM_1 "00:30:00"
 #define ALARM_2 "01:30:00"
 #define ALARM_3 "02:30:00"
@@ -71,6 +72,26 @@ bool USE_SAMP = false; //set to false if not using sample number
 #define ALARM_22 "21:30:00"
 #define ALARM_23 "22:30:00"
 #define ALARM_24 "23:30:00"
+*/
+
+//ALARM TIMES FROM SD_CONFIG
+// my variables
+char *ALARM_1;
+char *ALARM_2;
+char *ALARM_3;
+char *ALARM_4;
+char *ALARM_5;
+char *ALARM_6;
+char *ALARM_7;
+char *ALARM_8;
+char *ALARM_9;
+char *ALARM_10;
+char *ALARM_11;
+char *ALARM_12;
+
+char *SAMPLE_LOCATION;
+int BAUDE_RATE;
+
 
 //SOUND FILE BASE NAMES
 #define ALARM_1_FILE_BASE "TKLN" 
@@ -99,16 +120,16 @@ bool USE_SAMP = false; //set to false if not using sample number
 #define ALARM_24_FILE_BASE "TKEV" 
 
 // Wake Time
-int startH = 8;
+int startH = 0;
 int startM = 0;
 int startS = 0;
 // Play Time (first alarm) [18:0:0 for real]
-int playH = 8;
-int playM = 5;
+int playH = 0;
+int playM = 0;
 int playS = 0;
 // Sleep Time
-int stopH = 16;
-int stopM = 59;
+int stopH = 0;
+int stopM = 0;
 int stopS = 0;
 
 // initialize the sample number as global variable
