@@ -45,39 +45,9 @@ int mos_pwr = 3;
 int mos_audio = 2;
 bool USE_SAMP = false; //set to false if not using sample number
 #define NUM_SAMP 3 //number of samples for each FILE_BASE
-// #define BAUDE_RATE 115200
 
-//OG ALARM TIMES
-#define ALARM_25 "00:30:00"
-/*
-#define ALARM_1 "00:30:00"
-#define ALARM_2 "01:30:00"
-#define ALARM_3 "02:30:00"
-#define ALARM_4 "03:30:00"
-#define ALARM_5 "04:30:00"
-#define ALARM_6 "05:30:00"
-#define ALARM_7 "06:30:00"
-#define ALARM_8 "07:30:00"
-#define ALARM_9 "08:30:00"
-#define ALARM_10 "09:30:00"
-#define ALARM_11 "10:30:00"
-#define ALARM_12 "11:30:00"
-#define ALARM_13 "12:30:00"
-#define ALARM_14 "13:30:00"
-#define ALARM_15 "14:30:00"
-#define ALARM_16 "15:30:00"
-#define ALARM_17 "16:30:00"
-#define ALARM_18 "17:30:00"
-#define ALARM_19 "18:30:00"
-#define ALARM_20 "19:30:00"
-#define ALARM_21 "20:30:00"
-#define ALARM_22 "21:30:00"
-#define ALARM_23 "22:30:00"
-#define ALARM_24 "23:30:00"
-*/
-
-//ALARM TIMES FROM SD_CONFIG
-// my variables
+//Settings from Config file
+// Alarm times
 char *ALARM_1;
 char *ALARM_2;
 char *ALARM_3;
@@ -103,35 +73,31 @@ char *ALARM_22;
 char *ALARM_23;
 char *ALARM_24;
 
-char *SAMPLE_LOCATION;
-int BAUDE_RATE;
-
-
 //SOUND FILE BASE NAMES
-#define ALARM_1_FILE_BASE "TKLN" 
-#define ALARM_2_FILE_BASE "TKDN" 
-#define ALARM_3_FILE_BASE "TKLN" 
-#define ALARM_4_FILE_BASE "TKLN" 
-#define ALARM_5_FILE_BASE "TKDN" 
-#define ALARM_6_FILE_BASE "TKDN" 
-#define ALARM_7_FILE_BASE "TKMN" 
-#define ALARM_8_FILE_BASE "TKMN" 
-#define ALARM_9_FILE_BASE "TKMN" 
-#define ALARM_10_FILE_BASE "TKMN" 
-#define ALARM_11_FILE_BASE "TKMN" 
-#define ALARM_12_FILE_BASE "TKMN" 
-#define ALARM_13_FILE_BASE "TKAF"
-#define ALARM_14_FILE_BASE "TKAF"
-#define ALARM_15_FILE_BASE "TKAF"
-#define ALARM_16_FILE_BASE "TKAF"
-#define ALARM_17_FILE_BASE "TKAF"
-#define ALARM_18_FILE_BASE "TKAF"
-#define ALARM_19_FILE_BASE "TKDK" 
-#define ALARM_20_FILE_BASE "TKDK" 
-#define ALARM_21_FILE_BASE "TKEV" 
-#define ALARM_22_FILE_BASE "TKEV" 
-#define ALARM_23_FILE_BASE "TKEV" 
-#define ALARM_24_FILE_BASE "TKEV" 
+char *ALARM_1_FILE_BASE; 
+char *ALARM_2_FILE_BASE; 
+char *ALARM_3_FILE_BASE; 
+char *ALARM_4_FILE_BASE; 
+char *ALARM_5_FILE_BASE; 
+char *ALARM_6_FILE_BASE; 
+char *ALARM_7_FILE_BASE; 
+char *ALARM_8_FILE_BASE; 
+char *ALARM_9_FILE_BASE; 
+char *ALARM_10_FILE_BASE; 
+char *ALARM_11_FILE_BASE; 
+char *ALARM_12_FILE_BASE; 
+char *ALARM_13_FILE_BASE;
+char *ALARM_14_FILE_BASE;
+char *ALARM_15_FILE_BASE;
+char *ALARM_16_FILE_BASE;
+char *ALARM_17_FILE_BASE;
+char *ALARM_18_FILE_BASE;
+char *ALARM_19_FILE_BASE; 
+char *ALARM_20_FILE_BASE; 
+char *ALARM_21_FILE_BASE; 
+char *ALARM_22_FILE_BASE; 
+char *ALARM_23_FILE_BASE; 
+char *ALARM_24_FILE_BASE; 
 
 // Wake Time
 int startH = 0;
@@ -146,12 +112,12 @@ int stopH = 0;
 int stopM = 0;
 int stopS = 0;
 
+//Other
+int BAUDE_RATE;
+boolean didReadConfig;
+
 // initialize the sample number as global variable
 int sampleNumber = 0;
-boolean didReadConfig;
-char *hello;
-boolean doDelay;
-int waitMs;
 
 // SD Logging file instantiation
 File myFile;
@@ -178,7 +144,6 @@ void digitalClockDisplay() {
   Serial.print(hour());
   printDigits(minute());
   printDigits(second());
-  Serial.println();
 }
 time_t getTeensy3Time() {
   return Teensy3Clock.get();
@@ -293,22 +258,8 @@ boolean readConfiguration() {
   while (cfg.readNextSetting()) {
     
     // Put a nameIs() block here for each setting you have.
-    
-    // OG Settings
-    if (cfg.nameIs("doDelay")) {
-      doDelay = cfg.getBooleanValue();
-    }
-    // waitMs integer
-    else if (cfg.nameIs("waitMs")) {
-      waitMs = cfg.getIntValue();
-    }
-    // hello string (char *)
-    else if (cfg.nameIs("hello")) {
-      hello = cfg.copyValue();
-    }
-
     // Alarm times
-    else if (cfg.nameIs("ALARM_1")) {     
+    if (cfg.nameIs("ALARM_1")) {     
       ALARM_1 = cfg.copyValue();
       Serial.print("ALARM_1: ");
       Serial.println(ALARM_1);      
@@ -450,12 +401,151 @@ boolean readConfiguration() {
       ALARM_24 = cfg.copyValue();
       Serial.print("ALARM_24: ");
       Serial.println(ALARM_24);
+
     }
-    // Sample location
-    else if (cfg.nameIs("SAMPLE_LOCATION")) {     
-      SAMPLE_LOCATION = cfg.copyValue();
-      Serial.print("SAMPLE_LOCATION: ");
-      Serial.println(SAMPLE_LOCATION);
+    
+    else if (cfg.nameIs("ALARM_1_FILE_BASE")) {     
+      ALARM_1_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_1_FILE_BASE: ");
+      Serial.println(ALARM_1_FILE_BASE);
+    }  
+
+    else if (cfg.nameIs("ALARM_2_FILE_BASE")) {     
+      ALARM_2_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_2_FILE_BASE: ");
+      Serial.println(ALARM_2_FILE_BASE);
+    }    
+
+    else if (cfg.nameIs("ALARM_3_FILE_BASE")) {     
+      ALARM_3_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_3_FILE_BASE: ");
+      Serial.println(ALARM_3_FILE_BASE);      
+    }
+
+    else if (cfg.nameIs("ALARM_4_FILE_BASE")) {     
+      ALARM_4_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_4_FILE_BASE: ");
+      Serial.println(ALARM_4_FILE_BASE);
+    }    
+
+    else if (cfg.nameIs("ALARM_5_FILE_BASE")) {     
+      ALARM_5_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_5_FILE_BASE: ");
+      Serial.println(ALARM_5_FILE_BASE);
+    }
+  
+      else if (cfg.nameIs("ALARM_6_FILE_BASE")) {     
+      ALARM_6_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_6_FILE_BASE: ");
+      Serial.println(ALARM_6_FILE_BASE);
+    }    
+
+    else if (cfg.nameIs("ALARM_7_FILE_BASE")) {     
+      ALARM_7_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_7_FILE_BASE: ");
+      Serial.println(ALARM_7_FILE_BASE);
+    }
+
+    else if (cfg.nameIs("ALARM_8_FILE_BASE")) {     
+      ALARM_8_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_8_FILE_BASE: ");
+      Serial.println(ALARM_8_FILE_BASE);
+    }    
+
+    else if (cfg.nameIs("ALARM_9_FILE_BASE")) {     
+      ALARM_9_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_9_FILE_BASE: ");
+      Serial.println(ALARM_9_FILE_BASE);
+    }
+
+    else if (cfg.nameIs("ALARM_10_FILE_BASE")) {     
+      ALARM_10_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_10_FILE_BASE: ");
+      Serial.println(ALARM_10_FILE_BASE);
+    }
+
+    else if (cfg.nameIs("ALARM_11_FILE_BASE")) {     
+      ALARM_11_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_11_FILE_BASE: ");
+      Serial.println(ALARM_11_FILE_BASE);
+    }    
+
+    else if (cfg.nameIs("ALARM_12_FILE_BASE")) {     
+      ALARM_12_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_12_FILE_BASE: ");
+      Serial.println(ALARM_12_FILE_BASE);
+    }
+
+    else if (cfg.nameIs("ALARM_13_FILE_BASE")) {     
+      ALARM_13_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_13_FILE_BASE: ");
+      Serial.println(ALARM_13_FILE_BASE);      
+    }
+    
+    else if (cfg.nameIs("ALARM_14_FILE_BASE")) {     
+      ALARM_14_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_14_FILE_BASE: ");
+      Serial.println(ALARM_14_FILE_BASE);
+    }    
+
+    else if (cfg.nameIs("ALARM_15_FILE_BASE")) {     
+      ALARM_15_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_15_FILE_BASE: ");
+      Serial.println(ALARM_15_FILE_BASE);      
+    }
+
+    else if (cfg.nameIs("ALARM_16_FILE_BASE")) {     
+      ALARM_16_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_16_FILE_BASE: ");
+      Serial.println(ALARM_16_FILE_BASE);
+    }    
+
+    else if (cfg.nameIs("ALARM_17_FILE_BASE")) {     
+      ALARM_17_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_17_FILE_BASE: ");
+      Serial.println(ALARM_17_FILE_BASE);
+    }
+  
+      else if (cfg.nameIs("ALARM_18_FILE_BASE")) {     
+      ALARM_18_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_18_FILE_BASE: ");
+      Serial.println(ALARM_18_FILE_BASE);
+    }    
+
+    else if (cfg.nameIs("ALARM_19_FILE_BASE")) {     
+      ALARM_19_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_19_FILE_BASE: ");
+      Serial.println(ALARM_19_FILE_BASE);
+    }
+
+    else if (cfg.nameIs("ALARM_20_FILE_BASE")) {     
+      ALARM_20_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_20_FILE_BASE: ");
+      Serial.println(ALARM_20_FILE_BASE);
+    }    
+
+    else if (cfg.nameIs("ALARM_21_FILE_BASE")) {     
+      ALARM_21_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_21_FILE_BASE: ");
+      Serial.println(ALARM_21_FILE_BASE);
+    }
+
+    else if (cfg.nameIs("ALARM_22_FILE_BASE")) {     
+      ALARM_22_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_22_FILE_BASE: ");
+      Serial.println(ALARM_22_FILE_BASE);
+    }
+
+    else if (cfg.nameIs("ALARM_23_FILE_BASE")) {     
+      ALARM_23_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_23_FILE_BASE: ");
+      Serial.println(ALARM_23_FILE_BASE);
+    }    
+
+    else if (cfg.nameIs("ALARM_24_FILE_BASE")) {     
+      ALARM_24_FILE_BASE = cfg.copyValue();
+      Serial.print("ALARM_24_FILE_BASE: ");
+      Serial.println(ALARM_24_FILE_BASE);
     }
 
     // Baude Rate
@@ -926,58 +1016,21 @@ void setup()  {
   // set the Time library to use Teensy 3.0's RTC to keep time
   setSyncProvider(getTeensy3Time);
 
-  // This is where I would want to read in all of my configurations
   while(Serial.available()==0) {
       Serial.println("Send any charcter to continue");
       delay(1000);
   }
 
-  pinMode(SDCARD_CS_PIN, OUTPUT);
+  Serial.println("");
 
+  // Config settings  
+  pinMode(SDCARD_CS_PIN, OUTPUT);
   didReadConfig = false; // might be able to get rid of all these instantiations
-  hello = 0;
-  doDelay = false;
-  waitMs = 0;
-  ALARM_1 = 0;
-  ALARM_2 = 0;
-  ALARM_3 = 0;
-  ALARM_4 = 0;
-  ALARM_5 = 0;
-  ALARM_6 = 0;
-  ALARM_7 = 0;
-  ALARM_8 = 0;
-  ALARM_9 = 0;
-  ALARM_10 = 0;
-  ALARM_11 = 0;
-  ALARM_12 = 0;
-  ALARM_13 = 0;
-  ALARM_14 = 0;
-  ALARM_15 = 0;
-  ALARM_16 = 0;
-  ALARM_17 = 0;
-  ALARM_18 = 0;
-  ALARM_19 = 0;
-  ALARM_20 = 0;
-  ALARM_21 = 0;
-  ALARM_22 = 0;
-  ALARM_23 = 0;
-  ALARM_24 = 0;  
-  SAMPLE_LOCATION = 0;
-  BAUDE_RATE = 0;
-  startH = 0;
-  startM = 0;
-  startS = 0;
-  playH = 0;
-  playM = 0;
-  playS = 0;
-  stopH = 0;
-  stopM = 0;
-  stopS = 0;
   
   // Setup the SD card
   SPI.setMOSI(SDCARD_MOSI_PIN);
   SPI.setSCK(SDCARD_SCK_PIN);   
-  Serial.println("Calling SD.begin()...");
+  Serial.println("Checking for SD Card...");
   if (!SD.begin(SDCARD_CS_PIN)) {
     Serial.println("SD.begin() failed. Check: ");
     Serial.println("  card insertion,");
@@ -988,17 +1041,23 @@ void setup()  {
     doneSignal();    
   //  return; dont think I need this if Im sending a done signal
   }
-  Serial.println("...succeeded.");
+  Serial.print("success!");
+  Serial.println("");
 
   // Read our configuration from the SD card file.
-  didReadConfig = readConfiguration();  
-  
+  Serial.println("################################");
+  Serial.println("CONFIG VALUES FROM SD");
+  didReadConfig = readConfiguration();
+  Serial.println("END OF CONFIGS");  
+  Serial.println("################################");
+  Serial.println("");
+
   // Set up serial for debugging
   Serial.begin(BAUDE_RATE);
 
   //adding delay for tesing when it goes through set up so I can catch the terminal traff
-  Serial.println("5s Set up delay");
-  delay(5000);
+  //Serial.println("5s Set up delay");
+  //delay(5000);
 
   //Digital pin configurations
   pinMode(done_pin, OUTPUT);
@@ -1006,13 +1065,13 @@ void setup()  {
   pinMode(mos_audio, OUTPUT);
 
   //Bluetooth Setup
-  Serial.println(F("Initialising Bluefruit LE module"));
+  Serial.println(F("Initialising Bluefruit LE module..."));
 
   if ( !ble.begin(VERBOSE_MODE) )
   {
     Serial.println("Couldn't find Bluefruit, make sure it's in CoMmanD mode & check wiring?");
   }
-  Serial.println( F("OK!") );
+  Serial.println( F("success!") );
 
   if ( FACTORYRESET_ENABLE )
   {
@@ -1025,13 +1084,14 @@ void setup()  {
 
   /* Disable command echo from Bluefruit */
   ble.echo(false);
-  Serial.println("finshed initalizing BLE");
 
   //check digital clock once in setup
+  Serial.println("Current time: ");
   digitalClockDisplay();
+  Serial.println();
 
   // Turn on System
-  printAndLog("Wake up system");
+  printAndLog("Wake up");
   digitalWrite(mos_pwr, HIGH);
   digitalWrite(mos_audio, HIGH);
 
@@ -1045,7 +1105,7 @@ void setup()  {
 
   //Set up alarms
   // using timeConstruct to insert hr, min and sec into Alarm definitions
-  Alarm.alarmRepeat(timeConstruct(ALARM_25)[0], timeConstruct(ALARM_25)[1], timeConstruct(ALARM_25)[2], startPlayingAlarm1);
+  Serial.print("Set alarms...");
   Alarm.alarmRepeat(timeConstruct(ALARM_2)[0], timeConstruct(ALARM_2)[1], timeConstruct(ALARM_2)[2], startPlayingAlarm2); 
   Alarm.alarmRepeat(timeConstruct(ALARM_3)[0], timeConstruct(ALARM_3)[1], timeConstruct(ALARM_3)[2], startPlayingAlarm3); 
   Alarm.alarmRepeat(timeConstruct(ALARM_4)[0], timeConstruct(ALARM_4)[1], timeConstruct(ALARM_4)[2], startPlayingAlarm4);
@@ -1070,11 +1130,12 @@ void setup()  {
   Alarm.alarmRepeat(timeConstruct(ALARM_23)[0], timeConstruct(ALARM_23)[1], timeConstruct(ALARM_23)[2], startPlayingAlarm23);
   Alarm.alarmRepeat(timeConstruct(ALARM_24)[0], timeConstruct(ALARM_24)[1], timeConstruct(ALARM_24)[2], startPlayingAlarm24);
 
-  Serial.println("successfully made all alarms");
+  Serial.println("...success!");
 }
 
 void loop() {
   digitalClockDisplay(); //serial print the time according to RTC
+  Serial.println();
   fault_check(); //If wavfile isn't playing, force on based on time
   ble.print("AT+BLEUARTTX=");
   ble.println(active_file);
