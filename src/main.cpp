@@ -1,5 +1,7 @@
 //This code plays the loaded wav files on a schedule AND
 //will tell the TPL510 that it's done when Sound Off is trigered
+#define SOFTTWARE_VERSION "v2.1"
+#define USE_MTP 0
 
 //LIBRARIES
 #include <Arduino.h>
@@ -8,6 +10,8 @@
 #include "Adafruit_BLE.h"
 #include "Adafruit_BluefruitLE_UART.h"
 #include <SDConfig.h>
+#include <SD.h> //for MTP
+#include <MTP_Teensy.h> //for MTP
 
 //Wav Player Setup
 #include <Audio.h>
@@ -1017,16 +1021,21 @@ void setup()  {
   setSyncProvider(getTeensy3Time);
 
   while(Serial.available()==0) {
-      Serial.println("Send any charcter to continue");
+      Serial.println("Send any charcter to continue"); //only here for testing. REMOVE for deployment
       delay(1000);
   }
 
   Serial.println("");
+  Serial.print("Software Version: ");
+  Serial.println(SOFTTWARE_VERSION);
 
   // Config settings  
   pinMode(SDCARD_CS_PIN, OUTPUT);
   didReadConfig = false; // might be able to get rid of all these instantiations
   
+  // mandatory to begin the MTP session.
+  MTP.begin();
+
   // Setup the SD card
   SPI.setMOSI(SDCARD_MOSI_PIN);
   SPI.setSCK(SDCARD_SCK_PIN);   
@@ -1041,6 +1050,7 @@ void setup()  {
     doneSignal();    
   //  return; dont think I need this if Im sending a done signal
   }
+  MTP.addFilesystem(SD, "SD Card");
   Serial.print("success!");
   Serial.println("");
 
@@ -1134,10 +1144,11 @@ void setup()  {
 }
 
 void loop() {
-  digitalClockDisplay(); //serial print the time according to RTC
-  Serial.println();
-  fault_check(); //If wavfile isn't playing, force on based on time
-  ble.print("AT+BLEUARTTX=");
-  ble.println(active_file);
-  Alarm.delay(1000); // wait one second between clock display
+  //digitalClockDisplay(); //serial print the time according to RTC
+  //Serial.println();
+  //fault_check(); //If wavfile isn't playing, force on based on time
+  //ble.print("AT+BLEUARTTX=");
+  //ble.println(active_file);
+  MTP.loop();  //This is mandatory to be placed in the loop code.
+  Alarm.delay(10); // wait one second between clock display
 }
