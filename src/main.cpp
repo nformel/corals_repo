@@ -100,16 +100,16 @@ bool USE_SAMP = true; //set to false if not using sample number
 #define ALARM_24_FILE_BASE "NOISE"
 
 // Wake Time
-int startH = 8;
-int startM = 0;
+int startH = 10;
+int startM = 12;
 int startS = 0;
 // Play Time (first alarm) [18:0:0 for real]
-int playH = 8;
-int playM = 5;
+int playH = 10;
+int playM = 13;
 int playS = 0;
 // Sleep Time
-int stopH = 16;
-int stopM = 59;
+int stopH = 10;
+int stopM = 15;
 int stopS = 0;
 
 // initialize the sample number as global variable
