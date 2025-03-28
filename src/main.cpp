@@ -206,6 +206,7 @@ std::string makeFileNameString(std::string file_base, int samp, bool use_samp){
   }
 }
 
+
 // WAV FILE PLAYER AND TPL5110 HELPER FUNCTIONS
 // playFile function from WAV file player
 void playFile(std::string filename) { //const char string[]
@@ -240,6 +241,58 @@ std::array<int,3> timeConstruct(std::string timeString){
   timeInts[2] = stoi(secString);
 
   return timeInts;
+}
+
+
+const char * make_time_1(int H, int M, int S){
+  std::string concat = std::to_string(H) + ":" + std::to_string(M) + ":" + std::to_string(S);
+  const char * result = concat.c_str(); //convert string to pointer
+  return result;  
+}
+
+// construct time string of form "hh:mm:ss" from integer for hours, minutes and seconds (invers of timeConstruct)
+const char *  make_time(int H, int M, int S){
+  Serial.println("attempting to make a time");
+  Serial.print("H = ");
+  Serial.println(H);
+  Serial.print("M = ");
+  Serial.println(M);
+  Serial.print("S = ");
+  Serial.println(S);
+
+  std::string hrString = "null";
+  std::string minString = "null";
+  std::string secString = "null";
+
+  // need to ad zero padding for single digit integers
+  //Serial.println("evaluating H");
+  if(H<10){
+    hrString = "0" + std::to_string(H);
+  } else{hrString = std::to_string(H);}
+  //Serial.println("evaluating M");
+  if(M<10){
+    minString = "0" + std::to_string(M);
+  } else{minString = std::to_string(M);}
+  //Serial.println("evaluating S");
+  if(S<10){
+    secString = "0" + std::to_string(S);
+  } else{secString = std::to_string(S);}
+
+  Serial.print("hrString = ");
+  Serial.println(hrString.c_str());
+  Serial.print("minString = ");
+  Serial.println(minString.c_str());
+  Serial.print("S = ");
+  Serial.println(secString.c_str());
+
+  Serial.println("Concatenate");
+  std::string concat = hrString + ":" + minString + ":" + secString;
+  const char * result = concat.c_str();
+  Serial.println("print concat.c_str()");
+  Serial.println(concat.c_str());
+  Serial.println("make_time result: ");
+  Serial.println(result);
+  return result;
 }
 
 // Read Config function
@@ -846,6 +899,16 @@ int time2sec (int h, int m, int s) {
 //Function to determine if the present time is between two values
 bool time_between(std::string startTime, std::string stopTime) {
 
+  Serial.println("running time_between function");
+  delay(100);
+
+  Serial.print("startTime: ");
+  Serial.println(startTime.c_str());
+  delay(1000);
+  Serial.print("stopTime: ");
+  Serial.println(stopTime.c_str());
+  delay(1000);
+  
   // Break up times into H, M and S
   int inputH = hour();
   int inputM = minute();
@@ -855,9 +918,23 @@ bool time_between(std::string startTime, std::string stopTime) {
   int startM = timeConstruct(startTime)[1];
   int startS = timeConstruct(startTime)[2];
 
+  Serial.print("startH = ");
+  Serial.println(startH);
+  Serial.print("startM = ");
+  Serial.println(startM);
+  Serial.print("startS = ");
+  Serial.println(startS);
+
   int stopH = timeConstruct(stopTime)[0];
   int stopM = timeConstruct(stopTime)[1];
   int stopS = timeConstruct(stopTime)[2];
+
+  Serial.print("stopH = ");
+  Serial.println(stopH);
+  Serial.print("stopM = ");
+  Serial.println(stopM);
+  Serial.print("stopS = ");
+  Serial.println(stopS);
 
   // convert times to seconds after midnight
   int inputSeconds = time2sec(inputH, inputM, inputS);
@@ -866,44 +943,79 @@ bool time_between(std::string startTime, std::string stopTime) {
   bool rtrn = 0;
   
   if (startSeconds < stopSeconds) {
-    //Serial.println("Play interval does not include midnight");
+    Serial.println("Play interval does not include midnight");
+    delay(100);
     if (0 <= inputSeconds && inputSeconds < startSeconds) {
-      //Serial.println("Case 1");
+      Serial.println("Case 1");
       rtrn = 0;
     }
     else if (startSeconds <= inputSeconds && inputSeconds < stopSeconds) {
-      //Serial.println("Case 2");
+      Serial.println("Case 2");
       rtrn = 1;
     }
     else if (stopSeconds <= inputSeconds && inputSeconds < SEC_PRE_MIDNIGHT) {
-      //Serial.println("Case 3");
+      Serial.println("Case 3");
       rtrn = 0;
     }
   }
   else if (startSeconds > stopSeconds) {
-    //Serial.println("Play interval includes midnight");
+    Serial.println("Play interval includes midnight");
+    delay(100);
     if (0 <= inputSeconds && inputSeconds < stopSeconds) {
-      //Serial.println("Case 1");
+      Serial.println("Case 1");
       rtrn = 1;
     }
     else if (stopSeconds <= inputSeconds && inputSeconds < startSeconds) {
-      //Serial.println("Case 2");
+      Serial.println("Case 2");
       rtrn = 0;
     }
     else if (startSeconds <= inputSeconds && inputSeconds <= MIDNIGHT_IN_SEC) {
-      //Serial.println("Case 3");
+      Serial.println("Case 3");
       rtrn = 1;
     }
   }
+  else{Serial.println("no case met");}
 
   return rtrn;
 }
 
 
+
 // FAULT CHECK
 void fault_check(){
-  // if no audio is playing, start the appropriate default track
-  if (playWav1.isPlaying() == false){ 
+  //Decide if system should be on and/or playing OR go to sleep
+  std::string wake_time = make_time(startH, startM, startS);
+  std::string play_time = make_time(playH, playM, playS);
+  std::string sleep_time = make_time(stopH, stopM, stopS);
+
+  bool mode_on = time_between(wake_time,sleep_time);
+  bool mode_play = time_between(play_time,sleep_time);
+
+
+  // If state is false, send digital high to done pin (go to sleep)
+  if (mode_on == false) {
+    printAndLog("Sleep.");
+    delay(250);
+    digitalWrite(mos_pwr, LOW);
+    digitalWrite(mos_audio, LOW);
+    digitalWrite(done_pin, HIGH);
+    delay(1000);
+    digitalWrite(done_pin, LOW);
+  }
+  else{
+  // Turn on System
+  printAndLog("Wake up");
+  digitalWrite(mos_pwr, HIGH);
+  digitalWrite(mos_audio, HIGH);
+
+  // WAV Player Setup
+  AudioMemory(8);
+  sgtl5000_1.enable();
+  sgtl5000_1.volume(0.75);
+  }
+
+  // if no audio is playing and system is supposed to be on, start the appropriate default track
+  if (playWav1.isPlaying() == false && mode_play == true){ 
   printAndLog("Fault Check: System not playing.");
   
     // Check if sampleNumber is set to non-zero (e.g. system has stayed awake since alarm tripped)
@@ -1020,6 +1132,13 @@ void setup()  {
   // set the Time library to use Teensy 3.0's RTC to keep time
   setSyncProvider(getTeensy3Time);
 
+    // Set up serial for debugging
+  Serial.begin(BAUDE_RATE);
+
+  //adding delay for tesing when it goes through set up so I can catch the terminal traff
+  //Serial.println("5s Set up delay");
+  //delay(5000);
+
   while(Serial.available()==0) {
       Serial.println("Send any charcter to continue"); //only here for testing. REMOVE for deployment
       delay(1000);
@@ -1034,7 +1153,7 @@ void setup()  {
   didReadConfig = false; // might be able to get rid of all these instantiations
   
   // mandatory to begin the MTP session.
-  MTP.begin();
+  //MTP.begin();
 
   // Setup the SD card
   SPI.setMOSI(SDCARD_MOSI_PIN);
@@ -1061,13 +1180,6 @@ void setup()  {
   Serial.println("END OF CONFIGS");  
   Serial.println("################################");
   Serial.println("");
-
-  // Set up serial for debugging
-  Serial.begin(BAUDE_RATE);
-
-  //adding delay for tesing when it goes through set up so I can catch the terminal traff
-  //Serial.println("5s Set up delay");
-  //delay(5000);
 
   //Digital pin configurations
   pinMode(done_pin, OUTPUT);
@@ -1100,6 +1212,31 @@ void setup()  {
   digitalClockDisplay();
   Serial.println();
 
+  const char * wake_time = make_time(8, 0, 0); //make_time(startH, startM, startS);
+  Serial.println("wake_time is: ");
+  Serial.println(wake_time);
+
+  const char * sleep_time = make_time(stopH, stopM, stopS);
+  Serial.println("sleep_time is: ");
+  Serial.println(sleep_time);
+
+  Serial.println("mode_on: ");
+  bool mode_on = time_between(wake_time, sleep_time);
+  Serial.println(mode_on);
+
+  Serial.println("evaluate if system should be awake");
+
+  // If mode_on is false, send digital high to done pin (go to sleep)
+  if (mode_on == false) {
+    printAndLog("Sleep.");
+    delay(250);
+    digitalWrite(mos_pwr, LOW);
+    digitalWrite(mos_audio, LOW);
+    digitalWrite(done_pin, HIGH);
+    delay(1000);
+    digitalWrite(done_pin, LOW);
+  }
+  else{
   // Turn on System
   printAndLog("Wake up");
   digitalWrite(mos_pwr, HIGH);
@@ -1109,8 +1246,10 @@ void setup()  {
   AudioMemory(8);
   sgtl5000_1.enable();
   sgtl5000_1.volume(0.75);
+  }
 
   //Initialize the entropy funcition
+  Serial.println("initialize entropy");
   Entropy.Initialize();   
 
   //Set up alarms
@@ -1141,14 +1280,15 @@ void setup()  {
   Alarm.alarmRepeat(timeConstruct(ALARM_24)[0], timeConstruct(ALARM_24)[1], timeConstruct(ALARM_24)[2], startPlayingAlarm24);
 
   Serial.println("...success!");
+  delay(500);
 }
 
 void loop() {
-  //digitalClockDisplay(); //serial print the time according to RTC
-  //Serial.println();
+  digitalClockDisplay(); //serial print the time according to RTC
+  Serial.println();
   //fault_check(); //If wavfile isn't playing, force on based on time
   //ble.print("AT+BLEUARTTX=");
   //ble.println(active_file);
-  MTP.loop();  //This is mandatory to be placed in the loop code.
-  Alarm.delay(10); // wait one second between clock display
+  //MTP.loop();  //This is mandatory to be placed in the loop code.
+  Alarm.delay(1000); // wait one second between clock display
 }
