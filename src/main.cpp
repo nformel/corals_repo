@@ -62,6 +62,12 @@ std::array<int,3> timeConstruct(std::string timeString){
   return timeInts;
 }
 
+//Convert hours minutes and seconds to seconds after midnight
+int time2sec (int h, int m, int s) {
+  int timeSec = s + m * 60 + h * 3600;
+  return timeSec;
+}
+
 // construct time string of from "hh:mm:ss" from integer for hours, minutes and seconds (invers of timeConstruct)
 char * make_time(int H, int M, int S){
   char* time = (char *)malloc(9);
@@ -110,11 +116,6 @@ char * make_time(int H, int M, int S){
   return time;
 }
 
-//Convert hours minutes and seconds to seconds after midnight
-int time2sec (int h, int m, int s) {
-  int timeSec = s + m * 60 + h * 3600;
-  return timeSec;
-}
 
 //Function to determine if the present time is between two values
 bool time_between(std::string startTime, std::string stopTime) {
@@ -138,23 +139,9 @@ bool time_between(std::string startTime, std::string stopTime) {
   int startM = timeConstruct(startTime)[1];
   int startS = timeConstruct(startTime)[2];
 
-  Serial.print("startH = ");
-  Serial.println(startH);
-  Serial.print("startM = ");
-  Serial.println(startM);
-  Serial.print("startS = ");
-  Serial.println(startS);
-
   int stopH = timeConstruct(stopTime)[0];
   int stopM = timeConstruct(stopTime)[1];
   int stopS = timeConstruct(stopTime)[2];
-
-  Serial.print("stopH = ");
-  Serial.println(stopH);
-  Serial.print("stopM = ");
-  Serial.println(stopM);
-  Serial.print("stopS = ");
-  Serial.println(stopS);
 
   // convert times to seconds after midnight
   int nowSeconds = time2sec(nowH, nowM, nowS);
@@ -163,38 +150,39 @@ bool time_between(std::string startTime, std::string stopTime) {
   bool rtrn = 0;
   
   if (startSeconds < stopSeconds) {
-    Serial.println("Play interval does not include midnight");
+    //Serial.println("Play interval does not include midnight");
     delay(100);
     if (0 <= nowSeconds && nowSeconds < startSeconds) {
-      Serial.println("Case 1");
+      //Serial.println("Case 1");
       rtrn = 0;
     }
     else if (startSeconds <= nowSeconds && nowSeconds < stopSeconds) {
-      Serial.println("Case 2");
+      //Serial.println("Case 2");
       rtrn = 1;
     }
     else if (stopSeconds <= nowSeconds && nowSeconds < SEC_PRE_MIDNIGHT) {
-      Serial.println("Case 3");
+      //Serial.println("Case 3");
       rtrn = 0;
     }
   }
   else if (startSeconds > stopSeconds) {
-    Serial.println("Play interval includes midnight");
+    //Serial.println("Play interval includes midnight");
     delay(100);
     if (0 <= nowSeconds && nowSeconds < stopSeconds) {
-      Serial.println("Case 1");
+      //Serial.println("Case 1");
       rtrn = 1;
     }
     else if (stopSeconds <= nowSeconds && nowSeconds < startSeconds) {
-      Serial.println("Case 2");
+      //Serial.println("Case 2");
       rtrn = 0;
     }
     else if (startSeconds <= nowSeconds && nowSeconds <= MIDNIGHT_IN_SEC) {
-      Serial.println("Case 3");
+      //Serial.println("Case 3");
       rtrn = 1;
     }
   }
-  else{Serial.println("no case met");}
+  else{//Serial.println("no case met");
+    }
 
   return rtrn;
 }
@@ -229,27 +217,31 @@ void setup()  {
   digitalClockDisplay();
   Serial.println();
 
-  //make wake timefrom int
+  //create wake time string from integers
   Serial.println("load wake time");
   char * wake_time = make_time(startH, startM, startS);
   Serial.println("wake_time is: ");
   Serial.println(wake_time);
 
+  //create play time string from integers
   Serial.println("load play time");
   char * play_time = make_time(playH, playM, playS);
   Serial.println("play_time is: ");
   Serial.println(play_time);
 
+  //create sleep time string from integers
   Serial.println("load sleep time");
   char * sleep_time = make_time(stopH, stopM, stopS);
   Serial.println("sleep_time is: ");
   Serial.println(sleep_time);
 
+  //Determine if sysem should be on
   Serial.println("mode_on result is: ");
   bool mode_on = time_between(wake_time, sleep_time);
   if (mode_on){Serial.println("True");}
   else {Serial.println("False");};
 
+  //free dynamically allocated variables
   free(wake_time);
   free(play_time);
   free(sleep_time);
