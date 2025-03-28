@@ -13,17 +13,17 @@ using namespace std;
 #define BAUDE_RATE = 115200
 
 // Wake Time
-int startH = 8;
+int startH = 16;
 int startM = 0;
 int startS = 0;
 
 // Play Time (first alarm) [18:0:0 for real]
-int playH = 23;
+int playH = 15;
 int playM = 0;
 int playS = 0;
 
 // Sleep Time
-int stopH = 2;
+int stopH = 6;
 int stopM = 0;
 int stopS = 0;
 
@@ -117,16 +117,16 @@ int time2sec (int h, int m, int s) {
 }
 
 //Function to determine if the present time is between two values
-bool time_between(char * startTime, char * stopTime) {
+bool time_between(std::string startTime, std::string stopTime) {
 
   Serial.println("running time_between function");
   delay(100);
 
   Serial.print("startTime: ");
-  Serial.println(startTime);
+  Serial.println(startTime.c_str());
   delay(1000);
   Serial.print("stopTime: ");
-  Serial.println(stopTime);
+  Serial.println(stopTime.c_str());
   delay(1000);
   
   // Break up times into H, M and S
@@ -245,9 +245,10 @@ void setup()  {
   Serial.println("sleep_time is: ");
   Serial.println(sleep_time);
 
-  //Serial.println("mode_on result is: ");
-  //bool mode_on = time_between(wake_time, sleep_time);
-  //Serial.println(mode_on);
+  Serial.println("mode_on result is: ");
+  bool mode_on = time_between(wake_time, sleep_time);
+  if (mode_on){Serial.println("True");}
+  else {Serial.println("False");};
 
   free(wake_time);
   free(play_time);
