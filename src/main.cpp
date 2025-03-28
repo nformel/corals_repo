@@ -1,6 +1,6 @@
 //This code plays the loaded wav files on a schedule AND
 //will tell the TPL510 that it's done when Sound Off is trigered
-#define SOFTTWARE_VERSION "v2.1"
+#define SOFTTWARE_VERSION "v2.2"
 
 //LIBRARIES
 #include <Arduino.h>
@@ -18,12 +18,12 @@ int startM = 0;
 int startS = 0;
 
 // Play Time (first alarm) [18:0:0 for real]
-int playH = 8;
-int playM = 30;
+int playH = 23;
+int playM = 0;
 int playS = 0;
 
 // Sleep Time
-int stopH = 22;
+int stopH = 2;
 int stopM = 0;
 int stopS = 0;
 
@@ -62,57 +62,53 @@ std::array<int,3> timeConstruct(std::string timeString){
   return timeInts;
 }
 
-
 // construct time string of from "hh:mm:ss" from integer for hours, minutes and seconds (invers of timeConstruct)
-char* make_time(int H, int M, int S){
-  Serial.println("attempting to make a time");
-  Serial.print("H = ");
-  Serial.println(H);
-  Serial.print("M = ");
-  Serial.println(M);
-  Serial.print("S = ");
-  Serial.println(S);
+char * make_time(int H, int M, int S){
+  char* time = (char *)malloc(9);
+  //add terminating character to string
+  strcpy(time, "\0");
 
-  // need to ad zero padding for single digit integers
-  //Serial.println("evaluating H");
 
-  char time[9];
+  // convert ints to strings
+  char HString[2];
+  itoa(H, HString, 10);
+  char MString[2];
+  itoa(M, MString, 10);
+  char SString[2];
+  itoa(S, SString, 10);
 
+  // add hours
   if(H<10){
     char hrString[3] = "0";
-    char HString = H;
-    strcat(hrString, &HString);
+    strcat(hrString, HString);
+    strcat(hrString, ":");
     strcat(time, hrString);
   } else{
-    char hrString = H;
-    strcat(time, &hrString);
+    strcat(HString, ":");
+    strcat(time, HString);
   }
-  //Serial.println("evaluating M");
+
+  // add minutes
   if(M<10){
     char minString[3] = "0";
-    char MString = M;
-    strcat(minString, &MString);
+    strcat(minString, MString);
+    strcat(minString, ":");
     strcat(time, minString);
   } else{
-    char minString = M;
-    strcat(time, &minString);
+    strcat(MString, ":");
+    strcat(time, MString);
   }
-  //Serial.println("evaluating S");
+
+  // add seconds
   if(S<10){
     char secString[3] = "0";
-    char SString = S;
-    strcat(secString, &SString);
+    strcat(secString, SString);
     strcat(time, secString);
   } else{
-    char secString = S;
-    strcat(time, &secString);
+    strcat(time, SString);
   }
-
-  Serial.println("make_time result: ");
-  Serial.println(time);
   return time;
 }
-
 
 //Convert hours minutes and seconds to seconds after midnight
 int time2sec (int h, int m, int s) {
@@ -121,22 +117,86 @@ int time2sec (int h, int m, int s) {
 }
 
 //Function to determine if the present time is between two values
-bool time_between(std::string startTime, std::string stopTime) {
+bool time_between(char * startTime, char * stopTime) {
 
   Serial.println("running time_between function");
   delay(100);
 
   Serial.print("startTime: ");
-  String startTimeString = startTime.c_str();
-  Serial.println(startTimeString);
+  Serial.println(startTime);
   delay(1000);
-
-  String stopTimeString = stopTime.c_str();
   Serial.print("stopTime: ");
-  Serial.println(stopTimeString);
+  Serial.println(stopTime);
   delay(1000);
+  
+  // Break up times into H, M and S
+  int nowH = hour();
+  int nowM = minute();
+  int nowS = second();
 
-  return 1;
+  int startH = timeConstruct(startTime)[0];
+  int startM = timeConstruct(startTime)[1];
+  int startS = timeConstruct(startTime)[2];
+
+  Serial.print("startH = ");
+  Serial.println(startH);
+  Serial.print("startM = ");
+  Serial.println(startM);
+  Serial.print("startS = ");
+  Serial.println(startS);
+
+  int stopH = timeConstruct(stopTime)[0];
+  int stopM = timeConstruct(stopTime)[1];
+  int stopS = timeConstruct(stopTime)[2];
+
+  Serial.print("stopH = ");
+  Serial.println(stopH);
+  Serial.print("stopM = ");
+  Serial.println(stopM);
+  Serial.print("stopS = ");
+  Serial.println(stopS);
+
+  // convert times to seconds after midnight
+  int nowSeconds = time2sec(nowH, nowM, nowS);
+  int startSeconds = time2sec(startH, startM, startS);
+  int stopSeconds = time2sec(stopH, stopM, stopS);
+  bool rtrn = 0;
+  
+  if (startSeconds < stopSeconds) {
+    Serial.println("Play interval does not include midnight");
+    delay(100);
+    if (0 <= nowSeconds && nowSeconds < startSeconds) {
+      Serial.println("Case 1");
+      rtrn = 0;
+    }
+    else if (startSeconds <= nowSeconds && nowSeconds < stopSeconds) {
+      Serial.println("Case 2");
+      rtrn = 1;
+    }
+    else if (stopSeconds <= nowSeconds && nowSeconds < SEC_PRE_MIDNIGHT) {
+      Serial.println("Case 3");
+      rtrn = 0;
+    }
+  }
+  else if (startSeconds > stopSeconds) {
+    Serial.println("Play interval includes midnight");
+    delay(100);
+    if (0 <= nowSeconds && nowSeconds < stopSeconds) {
+      Serial.println("Case 1");
+      rtrn = 1;
+    }
+    else if (stopSeconds <= nowSeconds && nowSeconds < startSeconds) {
+      Serial.println("Case 2");
+      rtrn = 0;
+    }
+    else if (startSeconds <= nowSeconds && nowSeconds <= MIDNIGHT_IN_SEC) {
+      Serial.println("Case 3");
+      rtrn = 1;
+    }
+  }
+  else{Serial.println("no case met");}
+
+  return rtrn;
 }
 
 
@@ -152,32 +212,46 @@ void setup()  {
       delay(1000);
   }
 
+  ////Print using foo function
+  //Serial.println("print using foo function in main  loop");
+  //char * p = foo ();
+  //Serial.println("Serial print the char*p which is the return variable of foo");
+  //Serial.println (p);
+  //free (p);
+
+  // Software version
   Serial.println("");
   Serial.print("Software Version: ");
   Serial.println(SOFTTWARE_VERSION);
 
   //check digital clock once in setup
-  Serial.println("Current time: ");
+  Serial.println("now time: ");
   digitalClockDisplay();
   Serial.println();
 
+  //make wake timefrom int
   Serial.println("load wake time");
-  const char * wake_time = "08:00:00"; //make_time(startH, startM, startS);
+  char * wake_time = make_time(startH, startM, startS);
   Serial.println("wake_time is: ");
   Serial.println(wake_time);
 
+  Serial.println("load play time");
+  char * play_time = make_time(playH, playM, playS);
+  Serial.println("play_time is: ");
+  Serial.println(play_time);
+
   Serial.println("load sleep time");
-  const char * sleep_time = "23:00:00"; //make_time(stopH, stopM, stopS);
+  char * sleep_time = make_time(stopH, stopM, stopS);
   Serial.println("sleep_time is: ");
   Serial.println(sleep_time);
 
-  Serial.println("double check that wake time hasn't been overwritten: ");
-  Serial.println("wake_time is: ");
-  Serial.println(wake_time);
+  //Serial.println("mode_on result is: ");
+  //bool mode_on = time_between(wake_time, sleep_time);
+  //Serial.println(mode_on);
 
-  Serial.println("mode_on result is: ");
-  bool mode_on = time_between(wake_time, sleep_time);
-  Serial.println(mode_on);
+  free(wake_time);
+  free(play_time);
+  free(sleep_time);
 
 }
 
