@@ -64,7 +64,7 @@ std::array<int,3> timeConstruct(std::string timeString){
 
 
 // construct time string of from "hh:mm:ss" from integer for hours, minutes and seconds (invers of timeConstruct)
-const char *  make_time(int H, int M, int S){
+char* make_time(int H, int M, int S){
   Serial.println("attempting to make a time");
   Serial.print("H = ");
   Serial.println(H);
@@ -73,39 +73,44 @@ const char *  make_time(int H, int M, int S){
   Serial.print("S = ");
   Serial.println(S);
 
-  std::string hrString = "null";
-  std::string minString = "null";
-  std::string secString = "null";
-
   // need to ad zero padding for single digit integers
   //Serial.println("evaluating H");
+
+  char time[9];
+
   if(H<10){
-    hrString = "0" + std::to_string(H);
-  } else{hrString = std::to_string(H);}
+    char hrString[3] = "0";
+    char HString = H;
+    strcat(hrString, &HString);
+    strcat(time, hrString);
+  } else{
+    char hrString = H;
+    strcat(time, &hrString);
+  }
   //Serial.println("evaluating M");
   if(M<10){
-    minString = "0" + std::to_string(M);
-  } else{minString = std::to_string(M);}
+    char minString[3] = "0";
+    char MString = M;
+    strcat(minString, &MString);
+    strcat(time, minString);
+  } else{
+    char minString = M;
+    strcat(time, &minString);
+  }
   //Serial.println("evaluating S");
   if(S<10){
-    secString = "0" + std::to_string(S);
-  } else{secString = std::to_string(S);}
+    char secString[3] = "0";
+    char SString = S;
+    strcat(secString, &SString);
+    strcat(time, secString);
+  } else{
+    char secString = S;
+    strcat(time, &secString);
+  }
 
-  Serial.print("hrString = ");
-  Serial.println(hrString.c_str());
-  Serial.print("minString = ");
-  Serial.println(minString.c_str());
-  Serial.print("S = ");
-  Serial.println(secString.c_str());
-
-  Serial.println("Concatenate");
-  std::string concat = hrString + ":" + minString + ":" + secString;
-  const char * result = concat.c_str();
-  Serial.println("print concat.c_str()");
-  Serial.println(concat.c_str());
   Serial.println("make_time result: ");
-  Serial.println(result);
-  return result;
+  Serial.println(time);
+  return time;
 }
 
 
