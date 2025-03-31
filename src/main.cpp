@@ -1,6 +1,6 @@
 //This code plays the loaded wav files on a schedule AND
 //will tell the TPL510 that it's done when Sound Off is trigered
-#define SOFTTWARE_VERSION "Testcode v1"
+#define SOFTTWARE_VERSION "Testcode v1.5"
 #define USE_MTP 0
 
 //LIBRARIES
@@ -905,17 +905,19 @@ bool time_between(std::string startTime, std::string stopTime) {
   
   if (startSeconds < stopSeconds) {
     Serial.println("Play interval does not include midnight");
-    delay(100);
+    delay(1000);
+    Serial.println("now evaluate which case we are in");
+    delay(1000);
     if (0 <= nowSeconds && nowSeconds < startSeconds) {
-      //Serial.println("Case 1");
+      Serial.println("Case 1");
       rtrn = 0;
     }
     else if (startSeconds <= nowSeconds && nowSeconds < stopSeconds) {
-      //Serial.println("Case 2");
+      Serial.println("Case 2");
       rtrn = 1;
     }
     else if (stopSeconds <= nowSeconds && nowSeconds < SEC_PRE_MIDNIGHT) {
-      //Serial.println("Case 3");
+      Serial.println("Case 3");
       rtrn = 0;
     }
   }
@@ -938,7 +940,7 @@ bool time_between(std::string startTime, std::string stopTime) {
   else{//Serial.println("no case met");
     }
 
-  Serial.println("rtrn= ");
+  Serial.print("rtrn= ");
   Serial.println(rtrn);
   return rtrn;
 }
@@ -946,32 +948,23 @@ bool time_between(std::string startTime, std::string stopTime) {
 void fault_check(){
   Serial.println("run fault_check");
   //Decide if system should be on and/or playing OR go to sleep
-  //create wake time string from integers
-  //Serial.println("load wake time");
   char * wake_time = make_time(startH, startM, startS);
-  //Serial.println("wake_time is: ");
-  //Serial.println(wake_time);
-
   //create play time string from integers
-  //Serial.println("load play time");
   char * play_time = make_time(playH, playM, playS);
-  //Serial.println("play_time is: ");
-  //Serial.println(play_time);
-
   //create sleep time string from integers
-  //Serial.println("load sleep time");
   char * sleep_time = make_time(stopH, stopM, stopS);
-  //Serial.println("sleep_time is: ");
-  //Serial.println(sleep_time);
+
 
   //Determine if sysem should be on
   bool mode_on = time_between(wake_time, sleep_time);
   if (mode_on == false) {
     printAndLog("Fault: Sleep.");
     delay(250);
+
     free(wake_time);
     free(play_time);
     free(sleep_time);
+
     digitalWrite(mos_pwr, LOW);
     digitalWrite(mos_audio, LOW);
     digitalWrite(done_pin, HIGH);
@@ -982,36 +975,28 @@ void fault_check(){
   printAndLog("Fault: system should be on");
   digitalWrite(mos_pwr, HIGH);
   digitalWrite(mos_audio, HIGH);
-
-  Serial.println("passed point 1");
+  delay(500);
 
   free(wake_time);
   free(play_time);
   free(sleep_time);
-
-  Serial.println("passed point 2");
+  delay(500);
   }
 
-  Serial.println("passed point 3");
-
   //Determine if sysem should be playing
-  bool mode_play = time_between(play_time, sleep_time);
-
-  Serial.println("passed point 4");
-
-  if (mode_play){Serial.println("System should be playing");}
-  else {Serial.println("System should be on, but not playing yet");};
+  //bool mode_play = time_between(play_time, sleep_time);
+  //if (mode_play){Serial.println("System should be playing");}
+  //else {Serial.println("System should be on, but not playing yet");};
   
-  Serial.println("passed point 5");
 
   Serial.println("playWav1.isPlaying() == true: ");
   Serial.println((playWav1.isPlaying() == true));
 
   Serial.println("I made it past evaluating that statement");
 
-  if (playWav1.isPlaying() == true && mode_play == true){
+  if (playWav1.isPlaying() == true){
     Serial.println("System is already playing, all is well");
-  } else if (playWav1.isPlaying() == false && mode_play == true){ 
+  } else if (playWav1.isPlaying() == false){ 
     printAndLog("Fault: System was not playing but it should be.");
   
     // Check if sampleNumber is set to non-zero (e.g. system has stayed awake since alarm tripped)
@@ -1117,12 +1102,13 @@ void fault_check(){
       playFile(makeFileNameString(ALARM_24_FILE_BASE, sampleNumber, USE_SAMP));
       delay(250);
     }
+    Serial.println("Pass point 1");
   }
 
   else {
-    //passed point 
+    Serial.println("Pass point 2"); 
   }
-  //Serial.println("I promise, it's here that I am stuck");
+  Serial.println("Pass point 3");
 }
 
 void setup()  {
@@ -1139,10 +1125,10 @@ void setup()  {
   //delay(5000);
 
   //WAIT
-  //while(Serial.available()==0) {
-  //    Serial.println("Send any charcter to continue"); //only here for testing. REMOVE for deployment
-  //    delay(1000);
-  //}
+  while(Serial.available()==0) {
+      Serial.println("Send any charcter to continue"); //only here for testing. REMOVE for deployment
+      delay(1000);
+  }
 
   Serial.println("");
   Serial.print("Software Version: ");
@@ -1206,62 +1192,18 @@ void setup()  {
   */
 
   //check digital clock once in setup
-  Serial.println("Current time: ");
+  Serial.print("Current time: ");
   digitalClockDisplay();
   Serial.println();
 
   //create wake time string from integers
-  Serial.println("load wake time");
-  char * wake_time = make_time(startH, startM, startS);
-  Serial.println("wake_time is: ");
-  Serial.println(wake_time);
-
-  //create play time string from integers
-  Serial.println("load play time");
-  char * play_time = make_time(playH, playM, playS);
-  Serial.println("play_time is: ");
-  Serial.println(play_time);
-
-  //create sleep time string from integers
-  Serial.println("load sleep time");
-  char * sleep_time = make_time(stopH, stopM, stopS);
-  Serial.println("sleep_time is: ");
-  Serial.println(sleep_time);
-
-  Serial.println("mode_on: ");
-  bool mode_on = time_between(wake_time, sleep_time);
-  Serial.println(mode_on);
-
-  Serial.println("evaluate if system should be awake");
-
-  // If mode_on is false, send digital high to done pin (go to sleep)
-  if (mode_on == false) {
-    printAndLog("Sleep.");
-    delay(250);
-    free(wake_time);
-    free(play_time);
-    free(sleep_time);
-    digitalWrite(mos_pwr, LOW);
-    digitalWrite(mos_audio, LOW);
-    digitalWrite(done_pin, HIGH);
-    delay(1000);
-    digitalWrite(done_pin, LOW);
-  }
-  else{
-  // Turn on System
-  printAndLog("Wake up");
-  digitalWrite(mos_pwr, HIGH);
-  digitalWrite(mos_audio, HIGH);
-
-  free(wake_time);
-  free(play_time);
-  free(sleep_time);
+  Serial.println("Run fault check");
+  fault_check();
 
   // WAV Player Setup
   AudioMemory(8);
   sgtl5000_1.enable();
   sgtl5000_1.volume(0.75);
-  }
 
   //Initialize the entropy funcition
   Serial.println("initialize entropy");
@@ -1301,14 +1243,21 @@ void setup()  {
 
 void loop() {
   digitalClockDisplay(); //serial print the time according to RTC
+  Serial.print(" time_between check count: ");
+  Serial.print(fault_check_cnt);
   Serial.println();
-  Serial.print("fault check count: ");
-  Serial.println(fault_check_cnt);
 
   // only run fault check every 10 seconds
   if (fault_check_cnt==10){
     fault_check_cnt = 0;
     fault_check(); //If wavfile isn't playing, force on based on time
+    delay(500);
+    Serial.println("fault_check ran");
+    //instead of fault check, run time_between
+    // char * wake_time = make_time(startH, startM, startS);
+    // char * play_time = make_time(playH, playM, playS);
+    // char * sleep_time = make_time(stopH, stopM, stopS);
+    // time_between(play_time, sleep_time);
   }
   else{fault_check_cnt += 1;}
   
