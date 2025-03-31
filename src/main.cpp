@@ -43,7 +43,7 @@ const char* BLE_ModuleName = "RAPS5_BLE";  // Added for renaming Bluefruit modul
 int done_pin = 17;
 int mos_pwr = 3;
 int mos_audio = 2;
-bool USE_SAMP = true; //set to false if not using sample number
+bool USE_SAMP = false; //set to false if not using sample number
 #define NUM_SAMP 3 //number of samples for each FILE_BASE
 #define BAUDE_RATE 115200
 
@@ -74,43 +74,46 @@ bool USE_SAMP = true; //set to false if not using sample number
 #define ALARM_24 "23:30:00"
 
 //SOUND FILE BASE NAMES
-#define ALARM_1_FILE_BASE "AHLN" 
-#define ALARM_2_FILE_BASE "AHLN" 
-#define ALARM_3_FILE_BASE "AHLN" 
-#define ALARM_4_FILE_BASE "AHLN" 
-#define ALARM_5_FILE_BASE "AHDN" 
-#define ALARM_6_FILE_BASE "AHDN" 
-#define ALARM_7_FILE_BASE "AHMN" 
-#define ALARM_8_FILE_BASE "AHMN" 
-#define ALARM_9_FILE_BASE "AHMN" 
-#define ALARM_10_FILE_BASE "AHMN" 
-#define ALARM_11_FILE_BASE "AHMN" 
-#define ALARM_12_FILE_BASE "AHMN" 
-#define ALARM_13_FILE_BASE "AHAF"
-#define ALARM_14_FILE_BASE "AHAF"
-#define ALARM_15_FILE_BASE "AHAF"
-#define ALARM_16_FILE_BASE "AHAF"
-#define ALARM_17_FILE_BASE "AHAF"
-#define ALARM_18_FILE_BASE "AHAF"
-#define ALARM_19_FILE_BASE "AHDK" 
-#define ALARM_20_FILE_BASE "AHDK" 
-#define ALARM_21_FILE_BASE "AHEV" 
-#define ALARM_22_FILE_BASE "AHEV" 
-#define ALARM_23_FILE_BASE "AHEV" 
-#define ALARM_24_FILE_BASE "AHEV" 
+#define ALARM_1_FILE_BASE "TKLN" 
+#define ALARM_2_FILE_BASE "TKLN" 
+#define ALARM_3_FILE_BASE "TKLN" 
+#define ALARM_4_FILE_BASE "TKLN" 
+#define ALARM_5_FILE_BASE "TKDN" 
+#define ALARM_6_FILE_BASE "TKDN" 
+#define ALARM_7_FILE_BASE "TKMN" 
+#define ALARM_8_FILE_BASE "TKMN" 
+#define ALARM_9_FILE_BASE "TKMN" 
+#define ALARM_10_FILE_BASE "TKMN" 
+#define ALARM_11_FILE_BASE "TKMN" 
+#define ALARM_12_FILE_BASE "TKMN" 
+#define ALARM_13_FILE_BASE "TKAF"
+#define ALARM_14_FILE_BASE "TKAF"
+#define ALARM_15_FILE_BASE "TKAF"
+#define ALARM_16_FILE_BASE "TKAF"
+#define ALARM_17_FILE_BASE "TKAF"
+#define ALARM_18_FILE_BASE "TKAF"
+#define ALARM_19_FILE_BASE "TKDK" 
+#define ALARM_20_FILE_BASE "TKDK" 
+#define ALARM_21_FILE_BASE "TKEV" 
+#define ALARM_22_FILE_BASE "TKEV" 
+#define ALARM_23_FILE_BASE "TKEV" 
+#define ALARM_24_FILE_BASE "TKEV" 
 
 // Wake Time
-int startH = 8;
-int startM = 0;
-int startS = 0;
+std::string wake_time = "06:00:00";
+//int startH = 8;
+//int startM = 0;
+//int startS = 0;
 // Play Time (first alarm) [18:0:0 for real]
-int playH = 8;
-int playM = 5;
-int playS = 0;
+//std::string play_time = "06:10:00";
+//int playH = 8;
+//int playM = 5;
+//int playS = 0;
 // Sleep Time
-int stopH = 16;
-int stopM = 59;
-int stopS = 0;
+std::string sleep_time = "18:15:00";
+//int stopH = 16;
+//int stopM = 59;
+//int stopS = 0;
 
 // initialize the sample number as global variable
 int sampleNumber = 0;
@@ -212,6 +215,10 @@ void stopFile() {
 }
 //TPL5110 done
 void doneSignal() {
+  //turn off power MOSFETS
+  digitalWrite(mos_audio, LOW);
+  digitalWrite(mos_pwr, LOW );
+  delay(1000);
   printAndLog("Send done signal to TPL5110");
   digitalWrite(done_pin, HIGH);
   delay(1000);
@@ -504,116 +511,123 @@ bool time_between(std::string startTime, std::string stopTime) {
 
 // FAULT CHECK
 void fault_check(){
-  // if no audio is playing, start the appropriate default track
-  if (playWav1.isPlaying() == false){ 
-  printAndLog("Fault Check: System not playing.");
-  
-    // Check if sampleNumber is set to non-zero (e.g. system has stayed awake since alarm tripped)
-    // If zero, then system went through a power cycle. Re-randomize.
-    if (sampleNumber == 0){
-      sampleNumber = Entropy.random(1, NUM_SAMP+1);
-    }
-  
-    //Changed this to go for 24 hrs
-    if (time_between(ALARM_1, ALARM_2)){
-      playFile(makeFileNameString(ALARM_1_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_2, ALARM_3)){
-      playFile(makeFileNameString(ALARM_2_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_3, ALARM_4)){
-      playFile(makeFileNameString(ALARM_3_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_4, ALARM_5)){
-      playFile(makeFileNameString(ALARM_4_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_5, ALARM_6)){
-      playFile(makeFileNameString(ALARM_5_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_6, ALARM_7)){
-      playFile(makeFileNameString(ALARM_6_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_7, ALARM_8)){
-      playFile(makeFileNameString(ALARM_7_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_8, ALARM_9)){
-      playFile(makeFileNameString(ALARM_8_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_9, ALARM_10)){
-      playFile(makeFileNameString(ALARM_9_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_10, ALARM_11)){
-      playFile(makeFileNameString(ALARM_10_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_11, ALARM_12)){
-      playFile(makeFileNameString(ALARM_11_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_12, ALARM_13)){
-      playFile(makeFileNameString(ALARM_12_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_13, ALARM_14)){
-      playFile(makeFileNameString(ALARM_13_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_14, ALARM_15)){
-      playFile(makeFileNameString(ALARM_14_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_15, ALARM_16)){
-      playFile(makeFileNameString(ALARM_15_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_16, ALARM_17)){
-      playFile(makeFileNameString(ALARM_16_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_17, ALARM_18)){
-      playFile(makeFileNameString(ALARM_17_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_18, ALARM_19)){
-      playFile(makeFileNameString(ALARM_18_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_19, ALARM_20)){
-      playFile(makeFileNameString(ALARM_19_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_20, ALARM_21)){
-      playFile(makeFileNameString(ALARM_20_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_21, ALARM_22)){
-      playFile(makeFileNameString(ALARM_21_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_22, ALARM_23)){
-      playFile(makeFileNameString(ALARM_22_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }     
-    else if (time_between(ALARM_23, ALARM_24)){
-      playFile(makeFileNameString(ALARM_23_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-    else if (time_between(ALARM_24, ALARM_1)){
-      playFile(makeFileNameString(ALARM_24_FILE_BASE, sampleNumber, true));
-      delay(250);
-    }
-  }
+  //check if system should be awake. Go to sleep, if not.
+  if (time_between(sleep_time, wake_time)){
+    Serial.println("Fault Check: go to sleep");
+    delay(1000);
+    doneSignal();
 
-  else { //Serial.println("No, I'm stuck here"); // Do nothing, system is on and playing. No issue.  
+  } else if (time_between(wake_time, sleep_time)){
+      // if no audio is playing, start the appropriate default track
+    if (playWav1.isPlaying() == false){ 
+      printAndLog("Fault Check: System was not playing.");
+      
+        // Check if sampleNumber is set to non-zero (e.g. system has stayed awake since alarm tripped)
+        // If zero, then system went through a power cycle. Re-randomize.
+        if (sampleNumber == 0){
+          sampleNumber = Entropy.random(1, NUM_SAMP+1);
+        }
+      
+        //Changed this to go for 24 hrs
+        if (time_between(ALARM_1, ALARM_2)){
+          playFile(makeFileNameString(ALARM_1_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_2, ALARM_3)){
+          playFile(makeFileNameString(ALARM_2_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_3, ALARM_4)){
+          playFile(makeFileNameString(ALARM_3_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_4, ALARM_5)){
+          playFile(makeFileNameString(ALARM_4_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_5, ALARM_6)){
+          playFile(makeFileNameString(ALARM_5_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_6, ALARM_7)){
+          playFile(makeFileNameString(ALARM_6_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_7, ALARM_8)){
+          playFile(makeFileNameString(ALARM_7_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_8, ALARM_9)){
+          playFile(makeFileNameString(ALARM_8_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_9, ALARM_10)){
+          playFile(makeFileNameString(ALARM_9_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_10, ALARM_11)){
+          playFile(makeFileNameString(ALARM_10_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_11, ALARM_12)){
+          playFile(makeFileNameString(ALARM_11_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_12, ALARM_13)){
+          playFile(makeFileNameString(ALARM_12_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_13, ALARM_14)){
+          playFile(makeFileNameString(ALARM_13_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_14, ALARM_15)){
+          playFile(makeFileNameString(ALARM_14_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_15, ALARM_16)){
+          playFile(makeFileNameString(ALARM_15_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_16, ALARM_17)){
+          playFile(makeFileNameString(ALARM_16_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_17, ALARM_18)){
+          playFile(makeFileNameString(ALARM_17_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_18, ALARM_19)){
+          playFile(makeFileNameString(ALARM_18_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_19, ALARM_20)){
+          playFile(makeFileNameString(ALARM_19_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_20, ALARM_21)){
+          playFile(makeFileNameString(ALARM_20_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_21, ALARM_22)){
+          playFile(makeFileNameString(ALARM_21_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_22, ALARM_23)){
+          playFile(makeFileNameString(ALARM_22_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }     
+        else if (time_between(ALARM_23, ALARM_24)){
+          playFile(makeFileNameString(ALARM_23_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+        else if (time_between(ALARM_24, ALARM_1)){
+          playFile(makeFileNameString(ALARM_24_FILE_BASE, sampleNumber, USE_SAMP));
+          delay(250);
+        }
+      } else {
+        //Serial.println("I am beyond time. Current time is not during the 24 hr day");
+        }
   }
   //Serial.println("I promise, it's here that I am stuck");
 }
@@ -625,9 +639,11 @@ void setup()  {
   // Set up serial for debugging
   Serial.begin(BAUDE_RATE);
 
-  //adding delay for tesing when it goes through set up so I can catch the terminal traff
-  Serial.println("5s Set up delay");
-  delay(5000);
+  //FOR TESTING, wait until user sends a character over serial
+  while(Serial.available()==0) {
+    Serial.println("Send any charcter to continue"); //only here for testing. REMOVE for deployment
+    delay(1000);
+}
 
   // This is where I would want to read in all of my configurations
 
