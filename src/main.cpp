@@ -1,17 +1,17 @@
 //This code plays the loaded wav files on a schedule AND
 //will tell the TPL510 that it's done when Sound Off is trigered
-#define SOFTTWARE_VERSION "v2.1"
+#define SOFTTWARE_VERSION "Testcode v1"
 #define USE_MTP 0
 
 //LIBRARIES
 #include <Arduino.h>
 #include <TimeLib.h>
 #include <TimeAlarms.h>
-#include "Adafruit_BLE.h"
-#include "Adafruit_BluefruitLE_UART.h"
+//#include "Adafruit_BLE.h"
+//#include "Adafruit_BluefruitLE_UART.h"
 #include <SDConfig.h>
 #include <SD.h> //for MTP
-#include <MTP_Teensy.h> //for MTP
+//#include <MTP_Teensy.h> //for MTP
 
 //Wav Player Setup
 #include <Audio.h>
@@ -30,12 +30,14 @@ AudioConnection          patchCord2(playWav1, 1, audioOutput, 1);
 AudioControlSGTL5000     sgtl5000_1;
 
 //Bluefruit setup
+/*
 #define FACTORYRESET_ENABLE         0
 #define MINIMUM_FIRMWARE_VERSION    "0.6.6"
 #define MODE_LED_BEHAVIOUR          "MODE"
 #define BLUEFRUIT_UART_MODE_PIN     -1 //the following sets the optional Mode pin, its recommended but not required
 #define VERBOSE_MODE                false
 Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
+*/
 
 //STATIC DEFINITIONS
 #define SDCARD_CS_PIN    10
@@ -674,7 +676,7 @@ boolean readConfiguration() {
 void startPlayingAlarm1() {
   stopFile();
   printAndLog("Alarm1");
-  ble.print("Alarm1");  
+  //ble.print("Alarm1");  
   sampleNumber = Entropy.random(1, NUM_SAMP+1);  
   playFile(makeFileNameString(ALARM_1_FILE_BASE, sampleNumber, USE_SAMP)); //make file name from alarm hour and sample number.
   delay(WAIT_AFTER_PLAY_MS);
@@ -683,7 +685,7 @@ void startPlayingAlarm1() {
 void startPlayingAlarm2() {
   stopFile();
   printAndLog("Alarm2");  
-  ble.print("Alarm2");
+  //ble.print("Alarm2");
   sampleNumber = Entropy.random(1, NUM_SAMP+1);
   playFile(makeFileNameString(ALARM_2_FILE_BASE, sampleNumber, USE_SAMP));
   delay(WAIT_AFTER_PLAY_MS);
@@ -981,26 +983,26 @@ void fault_check(){
   digitalWrite(mos_pwr, HIGH);
   digitalWrite(mos_audio, HIGH);
 
-  Serial.println("I'm stuck here 1");
+  Serial.println("passed point 1");
 
   free(wake_time);
   free(play_time);
   free(sleep_time);
 
-  Serial.println("I'm stuck here 2");
+  Serial.println("passed point 2");
   }
 
-  Serial.println("I'm stuck here 3");
+  Serial.println("passed point 3");
 
   //Determine if sysem should be playing
   bool mode_play = time_between(play_time, sleep_time);
 
-  Serial.println("I'm stuck here 4");
+  Serial.println("passed point 4");
 
   if (mode_play){Serial.println("System should be playing");}
   else {Serial.println("System should be on, but not playing yet");};
   
-  Serial.println("I'm stuck here 5");
+  Serial.println("passed point 5");
 
   Serial.println("playWav1.isPlaying() == true: ");
   Serial.println((playWav1.isPlaying() == true));
@@ -1118,7 +1120,7 @@ void fault_check(){
   }
 
   else {
-    //I'm stuck here 
+    //passed point 
   }
   //Serial.println("I promise, it's here that I am stuck");
 }
@@ -1185,6 +1187,7 @@ void setup()  {
   pinMode(mos_audio, OUTPUT);
 
   //Bluetooth Setup
+  /*
   Serial.println(F("Initialising Bluefruit LE module..."));
   if ( !ble.begin(VERBOSE_MODE) )
   {
@@ -1193,13 +1196,14 @@ void setup()  {
   Serial.println( F("success!") );
   if ( FACTORYRESET_ENABLE )
   {
-    /* Perform a factory reset to make sure everything is in a known state */
+    //Perform a factory reset to make sure everything is in a known state
     Serial.println(F("Performing a factory reset: "));
     if ( ! ble.factoryReset() ){
       Serial.println("Couldn't factory reset");
     }
   }
-  ble.echo(false); /* Disable command echo from Bluefruit */
+  ble.echo(false); // Disable command echo from Bluefruit
+  */
 
   //check digital clock once in setup
   Serial.println("Current time: ");
@@ -1298,6 +1302,8 @@ void setup()  {
 void loop() {
   digitalClockDisplay(); //serial print the time according to RTC
   Serial.println();
+  Serial.print("fault check count: ");
+  Serial.println(fault_check_cnt);
 
   // only run fault check every 10 seconds
   if (fault_check_cnt==10){
@@ -1306,8 +1312,8 @@ void loop() {
   }
   else{fault_check_cnt += 1;}
   
-  //ble.print("AT+BLEUARTTX=");
-  //ble.println(active_file);
+  ////ble.print("AT+BLEUARTTX=");
+  ////ble.println(active_file);
   //MTP.loop();  //This is mandatory to be placed in the loop code.
   Alarm.delay(1000); // wait one second between clock display
 }
