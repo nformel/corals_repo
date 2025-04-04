@@ -11,7 +11,7 @@
 #include "Adafruit_BluefruitLE_UART.h"
 #include <SDConfig.h>
 #include <SD.h> //for MTP
-#include <MTP_Teensy.h> //for MTP
+//#include <MTP_Teensy.h> //for MTP
 
 //Wav Player Setup
 #include <Audio.h>
@@ -44,11 +44,12 @@ Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
 #define WAIT_AFTER_PLAY_MS 250
 #define SEC_PRE_MIDNIGHT 86399
 #define MIDNIGHT_IN_SEC 86400
+#define NUM_SAMP 3 //number of samples for each FILE_BASE
 int done_pin = 17;
 int mos_pwr = 3;
 int mos_audio = 2;
 bool USE_SAMP = false; //set to false if not using sample number
-#define NUM_SAMP 3 //number of samples for each FILE_BASE
+bool ALWAYS_ON = true; //set to true if using in 24 hour mode
 
 //Settings from Config file
 // Alarm times
@@ -855,13 +856,13 @@ bool time_between(std::string startTime, std::string stopTime) {
 
 // FAULT CHECK
 void fault_check(){
-  //check if system should be awake. Go to sleep, if not.
-  if (time_between(SLEEP_TIME, WAKE_TIME)){
+  //check if system is being used in 24 hour mode. If not and system should be asleep, go to sleep.
+  if (time_between(SLEEP_TIME, WAKE_TIME) && ALWAYS_ON == false){
     Serial.println("Fault Check: go to sleep");
     delay(1000);
     doneSignal();
 
-  } else if (time_between(WAKE_TIME, SLEEP_TIME)){
+  } else {
       // if no audio is playing, start the appropriate default track
     if (playWav1.isPlaying() == false){ 
       printAndLog("Fault Check: System was not playing.");
@@ -995,7 +996,7 @@ void setup()  {
   didReadConfig = false; // might be able to get rid of all these instantiations
   
   // mandatory to begin the MTP session.
-  MTP.begin();
+  //MTP.begin();
 
   // Setup the SD card
   SPI.setMOSI(SDCARD_MOSI_PIN);
@@ -1011,7 +1012,8 @@ void setup()  {
     doneSignal();    
   //  return; dont think I need this if Im sending a done signal
   }
-  MTP.addFilesystem(SD, "SD Card");
+  
+  //MTP.addFilesystem(SD, "SD Card");
   Serial.print("success!");
   Serial.println("");
 
@@ -1077,6 +1079,7 @@ void setup()  {
   //Set up alarms
   // using timeConstruct to insert hr, min and sec into Alarm definitions
   Serial.print("Set alarms...");
+  Alarm.alarmRepeat(timeConstruct(ALARM_1)[0], timeConstruct(ALARM_1)[1], timeConstruct(ALARM_1)[2], startPlayingAlarm2); 
   Alarm.alarmRepeat(timeConstruct(ALARM_2)[0], timeConstruct(ALARM_2)[1], timeConstruct(ALARM_2)[2], startPlayingAlarm2); 
   Alarm.alarmRepeat(timeConstruct(ALARM_3)[0], timeConstruct(ALARM_3)[1], timeConstruct(ALARM_3)[2], startPlayingAlarm3); 
   Alarm.alarmRepeat(timeConstruct(ALARM_4)[0], timeConstruct(ALARM_4)[1], timeConstruct(ALARM_4)[2], startPlayingAlarm4);
@@ -1113,4 +1116,4 @@ void loop() {
   //MTP.loop();  //This is mandatory to be placed in the loop code.
   //Alarm.delay(10); //this has to be super fast for MP to work
   Alarm.delay(1000);
-}S
+}
