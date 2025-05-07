@@ -44,12 +44,9 @@ Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
 #define WAIT_AFTER_PLAY_MS 250
 #define SEC_PRE_MIDNIGHT 86399
 #define MIDNIGHT_IN_SEC 86400
-#define NUM_SAMP 3 //number of samples for each FILE_BASE
 int done_pin = 17;
 int mos_pwr = 3;
 int mos_audio = 2;
-bool USE_SAMP = false; //set to false if not using sample number
-bool ALWAYS_ON = true; //set to true if using in 24 hour mode
 
 //Settings from Config file
 // Alarm times
@@ -112,6 +109,9 @@ char * SLEEP_TIME; //std::string sleep_time = "14:58:00";
 
 //Other
 int BAUDE_RATE;
+int NUM_SAMP; 
+bool USE_SAMP;
+bool ALWAYS_ON;
 boolean didReadConfig;
 
 // initialize the sample number as global variable
@@ -122,7 +122,7 @@ File myFile;
 String active_file = "no file";
 
 // SD Config instatiations 
-const char CONFIG_FILE[] = "example.cfg";
+const char CONFIG_FILE[] = "config.cfg";
 boolean readConfiguration();
 
 /////////////
@@ -569,6 +569,24 @@ boolean readConfiguration() {
       Serial.print("SLEEP_TIME: ");
       Serial.println(SLEEP_TIME);
     }
+    
+    else if (cfg.nameIs("NUM_SAMP")) { 
+      NUM_SAMP = cfg.getIntValue();
+      Serial.print("NUM_SAMP: ");
+      Serial.println(NUM_SAMP);
+    }
+
+    else if (cfg.nameIs("USE_SAMP")) { 
+      USE_SAMP = cfg.getBooleanValue();
+      Serial.print("USE_SAMP: ");
+      Serial.println(USE_SAMP);
+    }
+
+    else if (cfg.nameIs("ALWAYS_ON")) { 
+      ALWAYS_ON = cfg.getBooleanValue();
+      Serial.print("ALWAYS_ON: ");
+      Serial.println(ALWAYS_ON);
+    }
 
     else {
       // report unrecognized names.
@@ -859,6 +877,7 @@ void fault_check(){
   //check if system is being used in 24 hour mode. If not and system should be asleep, go to sleep.
   if (time_between(SLEEP_TIME, WAKE_TIME) && ALWAYS_ON == false){
     Serial.println("Fault Check: go to sleep");
+    printAndLog("Go to sleep.");
     delay(1000);
     doneSignal();
 
