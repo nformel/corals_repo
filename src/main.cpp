@@ -113,6 +113,7 @@ int NUM_SAMP;
 bool USE_SAMP;
 bool ALWAYS_ON;
 boolean didReadConfig;
+boolean SERIAL_WAIT;
 
 // initialize the sample number as global variable
 int sampleNumber = 0;
@@ -588,6 +589,12 @@ boolean readConfiguration() {
       Serial.println(ALWAYS_ON);
     }
 
+    else if (cfg.nameIs("SERIAL_WAIT")) { 
+      SERIAL_WAIT = cfg.getBooleanValue();
+      Serial.print("SERIAL_WAIT: ");
+      Serial.println(SERIAL_WAIT);
+    }
+
     else {
       // report unrecognized names.
       Serial.print("Unknown name in config: ");
@@ -1000,16 +1007,6 @@ void setup()  {
   // set the Time library to use Teensy 3.0's RTC to keep time
   setSyncProvider(getTeensy3Time);
 
-  ////TESTING! HERE TO MAKE SYSTEM WAIT FOR USER INPUT
-  //while(Serial.available()==0) {
-  //    Serial.println("Send any charcter to continue"); //only here for testing. REMOVE for deployment
-  //    delay(1000);
-  //}
-
-  Serial.println("");
-  Serial.print("Software Version: ");
-  Serial.println(SOFTTWARE_VERSION);
-
   // Config settings  
   pinMode(SDCARD_CS_PIN, OUTPUT);
   didReadConfig = false; // might be able to get rid of all these instantiations
@@ -1033,10 +1030,10 @@ void setup()  {
   }
   
   //MTP.addFilesystem(SD, "SD Card");
-  Serial.print("success!");
-  Serial.println("");
+  //Serial.print("success!");
+  //Serial.println("");
 
-  // Read our configuration from the SD card file.
+  // Read and print configuration from the SD card file.
   Serial.println("################################");
   Serial.println("CONFIG VALUES FROM SD");
   didReadConfig = readConfiguration();
@@ -1047,9 +1044,17 @@ void setup()  {
   // Set up serial for debugging
   Serial.begin(BAUDE_RATE);
 
-  //adding delay for tesing when it goes through set up so I can catch the terminal traff
-  //Serial.println("5s Set up delay");
-  //delay(5000);
+  //If configuraiton SERIAL_WAIT = TRUE, block the script from running until a character is sent
+  if (SERIAL_WAIT == 1){
+    while(Serial.available()==0) {
+        Serial.println("Send any charcter to continue"); //only here for testing. REMOVE for deployment
+        delay(1000);
+    }
+  }
+
+  Serial.println("");
+  Serial.print("Software Version: ");
+  Serial.println(SOFTTWARE_VERSION);
 
   //Digital pin configurations
   pinMode(done_pin, OUTPUT);
