@@ -112,6 +112,7 @@ int BAUDE_RATE;
 int NUM_SAMP; 
 bool USE_SAMP;
 bool ALWAYS_ON;
+float VOLUME;
 boolean didReadConfig;
 boolean SERIAL_WAIT;
 
@@ -593,6 +594,12 @@ boolean readConfiguration() {
       SERIAL_WAIT = cfg.getBooleanValue();
       Serial.print("SERIAL_WAIT: ");
       Serial.println(SERIAL_WAIT);
+    }
+
+    else if (cfg.nameIs("VOLUME")) { 
+      VOLUME = atof(cfg.getValue());
+      Serial.print("VOLUME: ");
+      Serial.println(VOLUME);
     }
 
     else {
@@ -1095,7 +1102,7 @@ void setup()  {
   // WAV Player Setup
   AudioMemory(8);
   sgtl5000_1.enable();
-  sgtl5000_1.volume(0.75);
+  sgtl5000_1.volume(VOLUME);
 
   //Initialize the entropy funcition
   Entropy.Initialize();   
