@@ -1,6 +1,6 @@
 //This code plays the loaded wav files on a schedule AND
 //will tell the TPL510 that it's done when Sound Off is trigered
-#define SOFTTWARE_VERSION "v2.1"
+#define SOFTTWARE_VERSION "v2.2" //This includes BLUEFRUIT print statements and renaming
 #define USE_MTP 0
 
 //LIBRARIES
@@ -106,6 +106,9 @@ char * WAKE_TIME;
 
 // Sleep Time
 char * SLEEP_TIME; //std::string sleep_time = "14:58:00";
+
+// RAPS ID for Bluefruit naming
+char * RAPS_ID;
 
 //Other
 int BAUDE_RATE;
@@ -600,6 +603,12 @@ boolean readConfiguration() {
       VOLUME = atof(cfg.getValue());
       Serial.print("VOLUME: ");
       Serial.println(VOLUME);
+    }
+
+    else if (cfg.nameIs("RAPS_ID")) { 
+      RAPS_ID = cfg.copyValue();
+      Serial.print("RAPS_ID: ");
+      Serial.println(RAPS_ID);
     }
 
     else {
@@ -1136,15 +1145,70 @@ void setup()  {
   Alarm.alarmRepeat(timeConstruct(ALARM_24)[0], timeConstruct(ALARM_24)[1], timeConstruct(ALARM_24)[2], startPlayingAlarm24);
 
   Serial.println("...success!");
-}
+
+  // Function to set Bluefruit device name if not already set
+  void setBleDeviceName() {
+    if (RAPS_ID == NULL || strlen(RAPS_ID) == 0) {
+      Serial.println("RAPS_ID not found in config, skipping device naming");
+      return;
+    }
+  
+    Serial.print("Setting BLE device name to: ");
+    Serial.println(RAPS_ID);
+    
+    // Get current device name to check if it's already set
+    ble.print("AT+GAPDEVNAME\r\n");
+    delay(100);
+    
+    String currentName = "";
+    while (ble.available()) {
+      currentName += (char)ble.read();
+    }
+    
+    // Check if the device name is already set to our RAPS_ID
+    if (currentName.indexOf(RAPS_ID) != -1) {
+      Serial.println("Device name already set correctly");
+      printAndLog("BLE device name already configured");
+      return;
+    }
+    
+    // Set the device name
+    ble.print("AT+GAPDEVNAME=");
+    ble.println(RAPS_ID);
+    delay(100);
+    
+    // Verify the name was set
+    if (ble.waitForOK()) {
+      Serial.println("BLE device name set successfully");
+      printAndLog("BLE device name configured: " + std::string(RAPS_ID));
+      
+      // Reset to apply the new name
+      Serial.println("Resetting BLE module to apply new name...");
+      ble.reset();
+      delay(1000);
+    } else {
+      Serial.println("Failed to set BLE device name");
+      printAndLog("Failed to set BLE device name");
+    }
+  }
+
+  }
 
 void loop() {
   digitalClockDisplay(); //serial print the time according to RTC
   Serial.println();
   fault_check(); //If wavfile isn't playing, force on based on time
-  //ble.print("AT+BLEUARTTX=");
-  //ble.println(active_file);
-  //MTP.loop();  //This is mandatory to be placed in the loop code.
-  //Alarm.delay(10); //this has to be super fast for MP to work
+  // Send current time and active file to Bluetooth UART
+  ble.print("AT+BLEUARTTX=");
+  ble.print("Time: ");
+  ble.print(hour());
+  ble.print(":");
+  if (minute() < 10) ble.print('0');
+  ble.print(minute());
+  ble.print(":");
+  if (second() < 10) ble.print('0');
+  ble.print(second());
+  ble.print(" | File: ");
+  ble.println(active_file);
   Alarm.delay(1000);
 }
