@@ -1,6 +1,6 @@
 //This code plays the loaded wav files on a schedule AND
 //will tell the TPL510 that it's done when Sound Off is trigered
-#define SOFTTWARE_VERSION "v2.2" //This includes BLUEFRUIT print statements and renaming
+#define SOFTTWARE_VERSION "v2.3" //This includes BLUEFRUIT print statements and renaming, volume update, fix to config file reference
 #define USE_MTP 0
 
 //LIBRARIES
@@ -31,7 +31,7 @@ AudioControlSGTL5000     sgtl5000_1;
 
 //Bluefruit setup
 #define FACTORYRESET_ENABLE         0
-#define MINIMUM_FIRMWARE_VERSION    "0.6.6"
+#define MINIMUM_FIRMWARE_VERSION    "0.8.1" //Other RAPS are on 0.6.6
 #define MODE_LED_BEHAVIOUR          "MODE"
 #define BLUEFRUIT_UART_MODE_PIN     -1 //the following sets the optional Mode pin, its recommended but not required
 #define VERBOSE_MODE                false
@@ -43,79 +43,79 @@ Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
 #define SDCARD_SCK_PIN   14
 #define WAIT_AFTER_PLAY_MS 250
 #define SEC_PRE_MIDNIGHT 86399
-#define MIDNIGHT_IN_SEC 86400
+#define SEC_PER_DAY 86400 //Just for reference
 int done_pin = 17;
 int mos_pwr = 3;
 int mos_audio = 2;
 
 //Settings from Config file
 // Alarm times
-char *ALARM_1;
-char *ALARM_2;
-char *ALARM_3;
-char *ALARM_4;
-char *ALARM_5;
-char *ALARM_6;
-char *ALARM_7;
-char *ALARM_8;
-char *ALARM_9;
-char *ALARM_10;
-char *ALARM_11;
-char *ALARM_12;
-char *ALARM_13;
-char *ALARM_14;
-char *ALARM_15;
-char *ALARM_16;
-char *ALARM_17;
-char *ALARM_18;
-char *ALARM_19;
-char *ALARM_20;
-char *ALARM_21;
-char *ALARM_22;
-char *ALARM_23;
-char *ALARM_24;
+char *ALARM_1=0;
+char *ALARM_2=0;
+char *ALARM_3=0;
+char *ALARM_4=0;
+char *ALARM_5=0;
+char *ALARM_6=0;
+char *ALARM_7=0;
+char *ALARM_8=0;
+char *ALARM_9=0;
+char *ALARM_10=0;
+char *ALARM_11=0;
+char *ALARM_12=0;
+char *ALARM_13=0;
+char *ALARM_14=0;
+char *ALARM_15=0;
+char *ALARM_16=0;
+char *ALARM_17=0;
+char *ALARM_18=0;
+char *ALARM_19=0;
+char *ALARM_20=0;
+char *ALARM_21=0;
+char *ALARM_22=0;
+char *ALARM_23=0;
+char *ALARM_24=0;
 
 //SOUND FILE BASE NAMES
-char *ALARM_1_FILE_BASE; 
-char *ALARM_2_FILE_BASE; 
-char *ALARM_3_FILE_BASE; 
-char *ALARM_4_FILE_BASE; 
-char *ALARM_5_FILE_BASE; 
-char *ALARM_6_FILE_BASE; 
-char *ALARM_7_FILE_BASE; 
-char *ALARM_8_FILE_BASE; 
-char *ALARM_9_FILE_BASE; 
-char *ALARM_10_FILE_BASE; 
-char *ALARM_11_FILE_BASE; 
-char *ALARM_12_FILE_BASE; 
-char *ALARM_13_FILE_BASE;
-char *ALARM_14_FILE_BASE;
-char *ALARM_15_FILE_BASE;
-char *ALARM_16_FILE_BASE;
-char *ALARM_17_FILE_BASE;
-char *ALARM_18_FILE_BASE;
-char *ALARM_19_FILE_BASE; 
-char *ALARM_20_FILE_BASE; 
-char *ALARM_21_FILE_BASE; 
-char *ALARM_22_FILE_BASE; 
-char *ALARM_23_FILE_BASE; 
-char *ALARM_24_FILE_BASE; 
+char *ALARM_1_FILE_BASE=0; 
+char *ALARM_2_FILE_BASE=0; 
+char *ALARM_3_FILE_BASE=0; 
+char *ALARM_4_FILE_BASE=0; 
+char *ALARM_5_FILE_BASE=0; 
+char *ALARM_6_FILE_BASE=0; 
+char *ALARM_7_FILE_BASE=0; 
+char *ALARM_8_FILE_BASE=0; 
+char *ALARM_9_FILE_BASE=0; 
+char *ALARM_10_FILE_BASE=0; 
+char *ALARM_11_FILE_BASE=0; 
+char *ALARM_12_FILE_BASE=0; 
+char *ALARM_13_FILE_BASE=0;
+char *ALARM_14_FILE_BASE=0;
+char *ALARM_15_FILE_BASE=0;
+char *ALARM_16_FILE_BASE=0;
+char *ALARM_17_FILE_BASE=0;
+char *ALARM_18_FILE_BASE=0;
+char *ALARM_19_FILE_BASE=0; 
+char *ALARM_20_FILE_BASE=0; 
+char *ALARM_21_FILE_BASE=0; 
+char *ALARM_22_FILE_BASE=0; 
+char *ALARM_23_FILE_BASE=0; 
+char *ALARM_24_FILE_BASE=0; 
 
 // Wake Time
-char * WAKE_TIME;
+char * WAKE_TIME=0;
 
 // Sleep Time
-char * SLEEP_TIME; //std::string sleep_time = "14:58:00";
+char * SLEEP_TIME=0; //std::string sleep_time = "14:58:00"=0;
 
 // RAPS ID for Bluefruit naming
-char * RAPS_ID;
+char * RAPS_ID=0;
 
 //Other
-int BAUDE_RATE;
-int NUM_SAMP; 
-bool USE_SAMP;
-bool ALWAYS_ON;
-float VOLUME;
+int BAUDE_RATE=0;
+int NUM_SAMP=0; 
+bool USE_SAMP=0;
+bool ALWAYS_ON=0;
+int VOLUME=0; //Values can be 13 (louder) to 31 (quieter), in air about 11dB swing https://www.pjrc.com/teensy/gui/?info=AudioControlSGTL5000#
 boolean didReadConfig;
 boolean SERIAL_WAIT;
 
@@ -236,8 +236,8 @@ void doneSignal() {
 std::array<int,3> timeConstruct(std::string timeString){
   std::array<int,3> timeInts;
   std::string hrString = timeString.substr(0,2);
-  std::string minString = timeString.substr(3,4);
-  std::string secString = timeString.substr(6,7);
+  std::string minString = timeString.substr(3,2);
+  std::string secString = timeString.substr(6,2);
   timeInts[0] = stoi(hrString);
   timeInts[1] = stoi(minString);
   timeInts[2] = stoi(secString);
@@ -600,10 +600,15 @@ boolean readConfiguration() {
     }
 
     else if (cfg.nameIs("VOLUME")) { 
-      VOLUME = atof(cfg.getValue());
+      VOLUME = cfg.getIntValue();  // read as integer directly
+      // Clamp to valid range just in case:
+      if (VOLUME < 13) VOLUME = 13;
+      else if (VOLUME > 31) VOLUME = 31;
       Serial.print("VOLUME: ");
       Serial.println(VOLUME);
     }
+
+    //Might need to add this as a function for powered but no playback muteLineout() to Silence the line level outputs.
 
     else if (cfg.nameIs("RAPS_ID")) { 
       RAPS_ID = cfg.copyValue();
@@ -840,70 +845,64 @@ int time2sec (int h, int m, int s) {
 
 //Function to determine if the present time is between two values
 bool time_between(std::string startTime, std::string stopTime) {
-
-  // Break up times into H, M and S
+  // Break up times into H, M, and S
   int inputH = hour();
   int inputM = minute();
   int inputS = second();
-
   int startH = timeConstruct(startTime)[0];
   int startM = timeConstruct(startTime)[1];
   int startS = timeConstruct(startTime)[2];
-
   int stopH = timeConstruct(stopTime)[0];
   int stopM = timeConstruct(stopTime)[1];
   int stopS = timeConstruct(stopTime)[2];
-
-  // convert times to seconds after midnight
+  // Convert times to seconds after midnight
   int inputSeconds = time2sec(inputH, inputM, inputS);
   int startSeconds = time2sec(startH, startM, startS);
   int stopSeconds = time2sec(stopH, stopM, stopS);
-  bool rtrn = 0;
-  
+  bool rtrn = false;
   if (startSeconds < stopSeconds) {
-    //Serial.println("Play interval does not include midnight");
-    if (0 <= inputSeconds && inputSeconds < startSeconds) {
-      //Serial.println("Case 1");
-      rtrn = 0;
+    // Interval does NOT include midnight
+    if (inputSeconds < startSeconds) {
+      rtrn = false;
     }
-    else if (startSeconds <= inputSeconds && inputSeconds < stopSeconds) {
-      //Serial.println("Case 2");
-      rtrn = 1;
+    else if (inputSeconds >= startSeconds && inputSeconds < stopSeconds) {
+      rtrn = true;
     }
-    else if (stopSeconds <= inputSeconds && inputSeconds < SEC_PRE_MIDNIGHT) {
-      //Serial.println("Case 3");
-      rtrn = 0;
+    else { // inputSeconds >= stopSeconds
+      rtrn = false;
     }
   }
   else if (startSeconds > stopSeconds) {
-    //Serial.println("Play interval includes midnight");
-    if (0 <= inputSeconds && inputSeconds < stopSeconds) {
-      //Serial.println("Case 1");
-      rtrn = 1;
+    // Interval includes midnight
+    if (inputSeconds < stopSeconds) {
+      rtrn = true;
     }
-    else if (stopSeconds <= inputSeconds && inputSeconds < startSeconds) {
-      //Serial.println("Case 2");
-      rtrn = 0;
+    else if (inputSeconds >= stopSeconds && inputSeconds < startSeconds) {
+      rtrn = false;
     }
-    else if (startSeconds <= inputSeconds && inputSeconds <= MIDNIGHT_IN_SEC) {
-      //Serial.println("Case 3");
-      rtrn = 1;
+    else if (inputSeconds >= startSeconds && inputSeconds <= SEC_PRE_MIDNIGHT) {
+      rtrn = true;
     }
   }
-
+  else {
+    // startSeconds == stopSeconds means interval is zero length - treat as false
+    rtrn = false;
+  }
   return rtrn;
 }
 
 
 // FAULT CHECK
 void fault_check(){
+    // Add debug info
+  Serial.print("Sleep/Wake check: ");
+  Serial.println(time_between(SLEEP_TIME, WAKE_TIME) ? "SLEEP" : "AWAKE");
   //check if system is being used in 24 hour mode. If not and system should be asleep, go to sleep.
   if (time_between(SLEEP_TIME, WAKE_TIME) && ALWAYS_ON == false){
     Serial.println("Fault Check: go to sleep");
     printAndLog("Go to sleep.");
     delay(1000);
     doneSignal();
-
   } else {
       // if no audio is playing, start the appropriate default track
     if (playWav1.isPlaying() == false){ 
@@ -1080,21 +1079,10 @@ void setup()  {
   //Bluetooth Setup
   Serial.println(F("Initialising Bluefruit LE module..."));
 
-  if ( !ble.begin(VERBOSE_MODE) )
-  {
+  if ( !ble.begin(VERBOSE_MODE) ){
     Serial.println("Couldn't find Bluefruit, make sure it's in CoMmanD mode & check wiring?");
   }
   Serial.println( F("success!") );
-
-  if ( FACTORYRESET_ENABLE )
-  {
-    /* Perform a factory reset to make sure everything is in a known state */
-    Serial.println(F("Performing a factory reset: "));
-    if ( ! ble.factoryReset() ){
-      Serial.println("Couldn't factory reset");
-    }
-  }
-
   /* Disable command echo from Bluefruit */
   ble.echo(false);
 
@@ -1111,8 +1099,7 @@ void setup()  {
   // WAV Player Setup
   AudioMemory(8);
   sgtl5000_1.enable();
-  sgtl5000_1.volume(VOLUME);
-
+  sgtl5000_1.lineOutLevel(VOLUME);
   //Initialize the entropy funcition
   Entropy.Initialize();   
 
@@ -1146,50 +1133,44 @@ void setup()  {
 
   Serial.println("...success!");
 
-  // Function to set Bluefruit device name if not already set
-  void setBleDeviceName() {
-    if (RAPS_ID == NULL || strlen(RAPS_ID) == 0) {
-      Serial.println("RAPS_ID not found in config, skipping device naming");
-      return;
-    }
-  
-    Serial.print("Setting BLE device name to: ");
+  //Bluetooth name setup
+  // Send command to get current BLE device name
+  ble.println("AT+GAPDEVNAME");
+  delay(200);  // Wait for BLE module to respond
+  // Read the full response
+  String response = "";
+  while (ble.available()) {
+    response += (char)ble.read();
+  }
+  response.trim();  // Clean up whitespace
+  // // Debug: print full response
+  // Serial.println("------ BLE raw response ------");
+  // Serial.println(response);
+  // Serial.println("------ END BLE raw response ------");
+
+  // Extract the first line (should be the device name)
+  int newlineIndex = response.indexOf('\n');
+  String currentName = (newlineIndex != -1) ? response.substring(0, newlineIndex) : response;
+  currentName.trim();
+  // Print extracted name
+  Serial.print("Current BLE device name parsed: ");
+  Serial.println(currentName);
+  // Compare to RAPS_ID and update if different
+  if (currentName != String(RAPS_ID)) {
+    Serial.print("Setting new BLE device name to: ");
     Serial.println(RAPS_ID);
-    
-    // Get current device name to check if it's already set
-    ble.print("AT+GAPDEVNAME\r\n");
-    delay(100);
-    
-    String currentName = "";
-    while (ble.available()) {
-      currentName += (char)ble.read();
-    }
-    
-    // Check if the device name is already set to our RAPS_ID
-    if (currentName.indexOf(RAPS_ID) != -1) {
-      Serial.println("Device name already set correctly");
-      printAndLog("BLE device name already configured");
-      return;
-    }
-    
-    // Set the device name
-    ble.print("AT+GAPDEVNAME=");
-    ble.println(RAPS_ID);
-    delay(100);
-    
-    // Verify the name was set
+    String cmd = String("AT+GAPDEVNAME=") + RAPS_ID;
+    ble.println(cmd);
+    delay(200);
     if (ble.waitForOK()) {
-      Serial.println("BLE device name set successfully");
-      printAndLog("BLE device name configured: " + std::string(RAPS_ID));
-      
-      // Reset to apply the new name
-      Serial.println("Resetting BLE module to apply new name...");
-      ble.reset();
+      Serial.println("BLE device name set successfully.");
+      ble.println("ATZ");  // Reset to apply new name
       delay(1000);
     } else {
-      Serial.println("Failed to set BLE device name");
-      printAndLog("Failed to set BLE device name");
+      Serial.println("Failed to set BLE device name.");
     }
+  } else {
+    Serial.println("BLE device name already correct. No change needed.");
   }
 
   }
@@ -1197,8 +1178,11 @@ void setup()  {
 void loop() {
   digitalClockDisplay(); //serial print the time according to RTC
   Serial.println();
+  // Serial.print("Millis at startup: ");//Check if millis is somehow carrying over
+  // Serial.println(millis());//Check if millis is somehow carrying over
   fault_check(); //If wavfile isn't playing, force on based on time
   // Send current time and active file to Bluetooth UART
+  // Serial.println(String("Volume is: ") + VOLUME);
   ble.print("AT+BLEUARTTX=");
   ble.print("Time: ");
   ble.print(hour());
