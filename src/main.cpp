@@ -1,6 +1,12 @@
 //This code plays the loaded wav files on a schedule AND
 //will tell the TPL510 that it's done when Sound Off is trigered
-#define SOFTTWARE_VERSION "v2.3" //This includes BLUEFRUIT print statements and renaming, volume update, fix to config file reference
+//#define SOFTTWARE_VERSION "v2.3" //This includes BLUEFRUIT print statements and renaming, volume update, fix to config file reference
+#define SOFTTWARE_VERSION "v3.0" //This includes bluetooth interaction via the Bluefruit Connect app. You can send "STATUS" for a quick 
+//report on the RTC date and time as well as volume and wake/sleep times. You can send "ON" to enable (temporarily) ALWAYS_ON so that 
+//the system turns on as it cycles. Once on you can send more complex commands like "HELLO" or "SET______" insert variable of choice, eg.
+//"SET VOLUME 13" or "SET WAKE_TIME 09:00:00". The system will reboot when a SET command is sent. 
+//This system also has a failsafe for the time loss issue. If RTC is lost, the time will be set to five minutes past the last logged time
+//and an error will log to the ERROR.txt file showing that the time was lost
 #define USE_MTP 0
 
 //LIBRARIES
@@ -23,11 +29,15 @@
 #include <string>
 #include <array>
 using namespace std;
-AudioPlaySdWav           playWav1;
-AudioOutputI2S           audioOutput;
-AudioConnection          patchCord1(playWav1, 0, audioOutput, 0);
-AudioConnection          patchCord2(playWav1, 1, audioOutput, 1);
-AudioControlSGTL5000     sgtl5000_1;
+//Wav file playback
+AudioPlaySdWav        playWav1;
+AudioOutputI2S        audioOutput;
+AudioMixer4           mix1;   // fine volume control
+AudioControlSGTL5000  sgtl5000_1;
+// Audio routing
+AudioConnection patchCord1(playWav1, 0, mix1, 0);     // Left WAV → Mixer input 0
+AudioConnection patchCord2(mix1, 0, audioOutput, 0);  // Mixer out → Left lineout
+AudioConnection patchCord3(mix1, 0, audioOutput, 1);  // Mixer out → Right lineout
 
 //Bluefruit setup
 #define FACTORYRESET_ENABLE         0
@@ -36,6 +46,15 @@ AudioControlSGTL5000     sgtl5000_1;
 #define BLUEFRUIT_UART_MODE_PIN     -1 //the following sets the optional Mode pin, its recommended but not required
 #define VERBOSE_MODE                false
 Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
+volatile bool configUpdatePending = false;
+String pendingVarName = "";
+String pendingValue = "";
+volatile bool sdOperationPending = false;
+volatile int pendingSDOperation = 0; // 0=none, 1=list files, 2=write config
+String lastPlayingFile = "";
+bool wasPlaying = false;
+bool lastConnected = false;  // GLOBAL variable, keeps state between loops
+
 
 //STATIC DEFINITIONS
 #define SDCARD_CS_PIN    10
@@ -101,6 +120,22 @@ char *ALARM_22_FILE_BASE=0;
 char *ALARM_23_FILE_BASE=0; 
 char *ALARM_24_FILE_BASE=0; 
 
+// // Arrays to make config writing easier - add after the individual alarm variables
+// char* ALARM_TIMES[24] = {ALARM_1, ALARM_2, ALARM_3, ALARM_4, ALARM_5, ALARM_6, 
+//                          ALARM_7, ALARM_8, ALARM_9, ALARM_10, ALARM_11, ALARM_12,
+//                          ALARM_13, ALARM_14, ALARM_15, ALARM_16, ALARM_17, ALARM_18,
+//                          ALARM_19, ALARM_20, ALARM_21, ALARM_22, ALARM_23, ALARM_24};
+
+// char* FILE_BASES[24] = {ALARM_1_FILE_BASE, ALARM_2_FILE_BASE, ALARM_3_FILE_BASE, 
+//                         ALARM_4_FILE_BASE, ALARM_5_FILE_BASE, ALARM_6_FILE_BASE,
+//                         ALARM_7_FILE_BASE, ALARM_8_FILE_BASE, ALARM_9_FILE_BASE,
+//                         ALARM_10_FILE_BASE, ALARM_11_FILE_BASE, ALARM_12_FILE_BASE,
+//                         ALARM_13_FILE_BASE, ALARM_14_FILE_BASE, ALARM_15_FILE_BASE,
+//                         ALARM_16_FILE_BASE, ALARM_17_FILE_BASE, ALARM_18_FILE_BASE,
+//                         ALARM_19_FILE_BASE, ALARM_20_FILE_BASE, ALARM_21_FILE_BASE,
+//                         ALARM_22_FILE_BASE, ALARM_23_FILE_BASE, ALARM_24_FILE_BASE};
+// AlarmId alarmIDs[24];   // stores the 24 alarm IDs
+
 // Wake Time
 char * WAKE_TIME=0;
 
@@ -111,11 +146,11 @@ char * SLEEP_TIME=0; //std::string sleep_time = "14:58:00"=0;
 char * RAPS_ID=0;
 
 //Other
-int BAUDE_RATE=0;
+int BAUD_RATE=0;
 int NUM_SAMP=0; 
 bool USE_SAMP=0;
 bool ALWAYS_ON=0;
-int VOLUME=0; //Values can be 13 (louder) to 31 (quieter), in air about 11dB swing https://www.pjrc.com/teensy/gui/?info=AudioControlSGTL5000#
+int VOLUME=0; //Values can be 0 (silent) to 100 (loudest), in air about 11dB swing https://www.pjrc.com/teensy/gui/?info=AudioControlSGTL5000#
 boolean didReadConfig;
 boolean SERIAL_WAIT;
 
@@ -129,6 +164,7 @@ String active_file = "no file";
 // SD Config instatiations 
 const char CONFIG_FILE[] = "config.cfg";
 boolean readConfiguration();
+bool writeConfigFileSafe();
 
 /////////////
 //FUNCTIONS//
@@ -157,11 +193,9 @@ String present(){
   String s = "/";
   String c = ":";
   String space = " ";
-
   String date = month()+s+day()+s+year();
   String thyme = hour()+c+minute()+c+second();
   String thisMagicMoment = date + space + thyme;
-  
   return thisMagicMoment;
 }
 
@@ -180,6 +214,20 @@ void logSD(std::string string) {
     Serial.println("error opening file");
   }
 }
+
+// Log errors to a separate SD file
+void logError(std::string string) {
+  File errorFile = SD.open("ERRORS.txt", FILE_WRITE);
+  if (errorFile) {
+    errorFile.print(present());   // timestamp
+    errorFile.print("  ");
+    errorFile.println(string.c_str());
+    errorFile.close();
+  } else {
+    Serial.println("ERROR: could not open ERRORS.txt");
+  }
+}
+
 // Wrap logging and serial print into a single function (now takes a std string and converts to char *)
 void printAndLog(std::string string){
   Serial.println(string.c_str());
@@ -207,28 +255,51 @@ std::string makeFileNameString(std::string file_base, int samp, bool use_samp){
 
 // WAV FILE PLAYER AND TPL5110 HELPER FUNCTIONS
 // playFile function from WAV file player
-void playFile(std::string filename) { //const char string[]
-  printAndLog("Playing file:");
-  printAndLog(filename);
-  playWav1.play(filename.c_str());
-  active_file = filename.c_str();
-  delay(10);
+// void playFile(std::string filename) { //const char string[]
+//   printAndLog("Playing file:");
+//   printAndLog(filename);
+//   playWav1.play(filename.c_str());
+//   active_file = filename.c_str();
+//   delay(10);
+// }
+void playFile(std::string filename) {
+    // printAndLog("Playing file:");
+    // printAndLog(filename);
+    playWav1.play(filename.c_str());
+    active_file = String(filename.c_str());  // Convert to Arduino String, not char*
+    delay(10);
 }
+
 // Turn off sound
 void stopFile() {
-  printAndLog("Stopping audio"); //ths goes at end of stopFile block. putting here for testing.
   playWav1.stop();
   delay(250);
+  printAndLog("Audio Stopped"); //ths goes at end of stopFile block. putting here for testing.
 }
-//TPL5110 done
+
 void doneSignal() {
-  //turn off power MOSFETS
+  // Mute outputs immediately
+  sgtl5000_1.muteLineout();
+  sgtl5000_1.volume(0.0);
+  mix1.gain(0, 0.0); // Mute mixer channel(s)
+  Serial.print("Trying to silence.");
+  delay(100);
+  if (playWav1.isPlaying()) {
+    playWav1.stop();
+    delay(100);
+  }
+  sgtl5000_1.disable();
+  delay(50);
   digitalWrite(mos_audio, LOW);
-  digitalWrite(mos_pwr, LOW );
-  delay(1000);
-  printAndLog("Send done signal to TPL5110");
+  // REMOVE FLAG - Clean shutdown
+  if (SD.exists("RUNNING.flg")) {
+    SD.remove("RUNNING.flg");
+  }
+  printAndLog("Clean shutdown - going to sleep");
+  digitalWrite(mos_pwr, LOW);
+  delay(100);
   digitalWrite(done_pin, HIGH);
-  delay(1000);
+  delay(100);
   digitalWrite(done_pin, LOW);
 }
 
@@ -250,10 +321,8 @@ std::array<int,3> timeConstruct(std::string timeString){
 //Returns true if successful, false if it failed.
 boolean readConfiguration() {
   const uint8_t CONFIG_LINE_LENGTH = 127;
-  
   // The open configuration file.
   SDConfig cfg;
-  
   // Open the configuration file.
   if (!cfg.begin(CONFIG_FILE, CONFIG_LINE_LENGTH)) {
     Serial.print("Failed to open configuration file: ");
@@ -555,11 +624,11 @@ boolean readConfiguration() {
       Serial.println(ALARM_24_FILE_BASE);
     }
 
-    // Baude Rate
-    else if (cfg.nameIs("BAUDE_RATE")) { 
-      BAUDE_RATE = cfg.getIntValue();
-      Serial.print("BAUDE_RATE: ");
-      Serial.println(BAUDE_RATE);
+    // BAUD Rate
+    else if (cfg.nameIs("BAUD_RATE")) { 
+      BAUD_RATE = cfg.getIntValue();
+      Serial.print("BAUD_RATE: ");
+      Serial.println(BAUD_RATE);
     }
     
     // Wake time
@@ -602,8 +671,8 @@ boolean readConfiguration() {
     else if (cfg.nameIs("VOLUME")) { 
       VOLUME = cfg.getIntValue();  // read as integer directly
       // Clamp to valid range just in case:
-      if (VOLUME < 13) VOLUME = 13;
-      else if (VOLUME > 31) VOLUME = 31;
+      if (VOLUME < 0) VOLUME = 0;
+      else if (VOLUME > 100) VOLUME = 100;
       Serial.print("VOLUME: ");
       Serial.println(VOLUME);
     }
@@ -625,7 +694,6 @@ boolean readConfiguration() {
   
   // clean up
   cfg.end();
-  
   return true;
 }
 
@@ -891,7 +959,6 @@ bool time_between(std::string startTime, std::string stopTime) {
   return rtrn;
 }
 
-
 // FAULT CHECK
 void fault_check(){
     // Add debug info
@@ -900,20 +967,18 @@ void fault_check(){
   //check if system is being used in 24 hour mode. If not and system should be asleep, go to sleep.
   if (time_between(SLEEP_TIME, WAKE_TIME) && ALWAYS_ON == false){
     Serial.println("Fault Check: go to sleep");
-    printAndLog("Go to sleep.");
+    //printAndLog("Go to sleep.");
     delay(1000);
     doneSignal();
   } else {
       // if no audio is playing, start the appropriate default track
     if (playWav1.isPlaying() == false){ 
       printAndLog("Fault Check: System was not playing.");
-      
         // Check if sampleNumber is set to non-zero (e.g. system has stayed awake since alarm tripped)
         // If zero, then system went through a power cycle. Re-randomize.
         if (sampleNumber == 0){
           sampleNumber = Entropy.random(1, NUM_SAMP+1);
         }
-      
         //Changed this to go for 24 hrs
         if (time_between(ALARM_1, ALARM_2)){
           playFile(makeFileNameString(ALARM_1_FILE_BASE, sampleNumber, USE_SAMP));
@@ -1018,181 +1083,969 @@ void fault_check(){
   //Serial.println("I promise, it's here that I am stuck");
 }
 
-void setup()  {
-  // set the Time library to use Teensy 3.0's RTC to keep time
-  setSyncProvider(getTeensy3Time);
-
-  // Config settings  
-  pinMode(SDCARD_CS_PIN, OUTPUT);
-  didReadConfig = false; // might be able to get rid of all these instantiations
+// DEBUG: Time recovery function with extensive logging
+bool recoverTimeFromLog() {
+  Serial.println("DEBUG: >>> Entering recoverTimeFromLog()");
   
-  // mandatory to begin the MTP session.
-  //MTP.begin();
-
-  // Setup the SD card
-  SPI.setMOSI(SDCARD_MOSI_PIN);
-  SPI.setSCK(SDCARD_SCK_PIN);   
-  Serial.println("Checking for SD Card...");
-  if (!SD.begin(SDCARD_CS_PIN)) {
-    Serial.println("SD.begin() failed. Check: ");
-    Serial.println("  card insertion,");
-    Serial.println("  SD shield I/O pins and chip select,");
-    Serial.println("  card formatting.");
-    Serial.println("Unable to access the SD card, go to sleep.");
-    delay(1000);
-    doneSignal();    
-  //  return; dont think I need this if Im sending a done signal
+  File logFile = SD.open("LOG.txt", FILE_READ);
+  if (!logFile) {
+    Serial.println("DEBUG: Could not open LOG.txt for time recovery");
+    return false;
   }
+  Serial.println("DEBUG: LOG.txt opened successfully");
   
-  //MTP.addFilesystem(SD, "SD Card");
-  //Serial.print("success!");
-  //Serial.println("");
-
-  // Read and print configuration from the SD card file.
-  Serial.println("################################");
-  Serial.println("CONFIG VALUES FROM SD");
-  didReadConfig = readConfiguration();
-  Serial.println("END OF CONFIGS");  
-  Serial.println("################################");
-  Serial.println("");
-
-  // Set up serial for debugging
-  Serial.begin(BAUDE_RATE);
-
-  //If configuraiton SERIAL_WAIT = TRUE, block the script from running until a character is sent
-  if (SERIAL_WAIT == 1){
-    while(Serial.available()==0) {
-        Serial.println("Send any charcter to continue"); //only here for testing. REMOVE for deployment
-        delay(1000);
-    }
-  }
-
-  Serial.println("");
-  Serial.print("Software Version: ");
-  Serial.println(SOFTTWARE_VERSION);
-
-  //Digital pin configurations
-  pinMode(done_pin, OUTPUT);
-  pinMode(mos_pwr, OUTPUT);
-  pinMode(mos_audio, OUTPUT);
-
-  //Bluetooth Setup
-  Serial.println(F("Initialising Bluefruit LE module..."));
-
-  if ( !ble.begin(VERBOSE_MODE) ){
-    Serial.println("Couldn't find Bluefruit, make sure it's in CoMmanD mode & check wiring?");
-  }
-  Serial.println( F("success!") );
-  /* Disable command echo from Bluefruit */
-  ble.echo(false);
-
-  //check digital clock once in setup
-  Serial.println("Current time: ");
-  digitalClockDisplay();
-  Serial.println();
-
-  // Turn on System
-  printAndLog("Wake up");
-  digitalWrite(mos_pwr, HIGH);
-  digitalWrite(mos_audio, HIGH);
-
-  // WAV Player Setup
-  AudioMemory(8);
-  sgtl5000_1.enable();
-  sgtl5000_1.lineOutLevel(VOLUME);
-  //Initialize the entropy funcition
-  Entropy.Initialize();   
-
-  //Set up alarms
-  // using timeConstruct to insert hr, min and sec into Alarm definitions
-  Serial.print("Set alarms...");
-  Alarm.alarmRepeat(timeConstruct(ALARM_1)[0], timeConstruct(ALARM_1)[1], timeConstruct(ALARM_1)[2], startPlayingAlarm1); 
-  Alarm.alarmRepeat(timeConstruct(ALARM_2)[0], timeConstruct(ALARM_2)[1], timeConstruct(ALARM_2)[2], startPlayingAlarm2); 
-  Alarm.alarmRepeat(timeConstruct(ALARM_3)[0], timeConstruct(ALARM_3)[1], timeConstruct(ALARM_3)[2], startPlayingAlarm3); 
-  Alarm.alarmRepeat(timeConstruct(ALARM_4)[0], timeConstruct(ALARM_4)[1], timeConstruct(ALARM_4)[2], startPlayingAlarm4);
-  Alarm.alarmRepeat(timeConstruct(ALARM_5)[0], timeConstruct(ALARM_5)[1], timeConstruct(ALARM_5)[2], startPlayingAlarm5);
-  Alarm.alarmRepeat(timeConstruct(ALARM_6)[0], timeConstruct(ALARM_6)[1], timeConstruct(ALARM_6)[2], startPlayingAlarm6);
-  Alarm.alarmRepeat(timeConstruct(ALARM_7)[0], timeConstruct(ALARM_7)[1], timeConstruct(ALARM_7)[2], startPlayingAlarm7);
-  Alarm.alarmRepeat(timeConstruct(ALARM_8)[0], timeConstruct(ALARM_8)[1], timeConstruct(ALARM_8)[2], startPlayingAlarm8);
-  Alarm.alarmRepeat(timeConstruct(ALARM_9)[0], timeConstruct(ALARM_9)[1], timeConstruct(ALARM_9)[2], startPlayingAlarm9);
-  Alarm.alarmRepeat(timeConstruct(ALARM_10)[0], timeConstruct(ALARM_10)[1], timeConstruct(ALARM_10)[2], startPlayingAlarm10);
-  Alarm.alarmRepeat(timeConstruct(ALARM_11)[0], timeConstruct(ALARM_11)[1], timeConstruct(ALARM_11)[2], startPlayingAlarm11);
-  Alarm.alarmRepeat(timeConstruct(ALARM_12)[0], timeConstruct(ALARM_12)[1], timeConstruct(ALARM_12)[2], startPlayingAlarm12);
-  Alarm.alarmRepeat(timeConstruct(ALARM_13)[0], timeConstruct(ALARM_13)[1], timeConstruct(ALARM_13)[2], startPlayingAlarm13);
-  Alarm.alarmRepeat(timeConstruct(ALARM_14)[0], timeConstruct(ALARM_14)[1], timeConstruct(ALARM_14)[2], startPlayingAlarm14);
-  Alarm.alarmRepeat(timeConstruct(ALARM_15)[0], timeConstruct(ALARM_15)[1], timeConstruct(ALARM_15)[2], startPlayingAlarm15);
-  Alarm.alarmRepeat(timeConstruct(ALARM_16)[0], timeConstruct(ALARM_16)[1], timeConstruct(ALARM_16)[2], startPlayingAlarm16);
-  Alarm.alarmRepeat(timeConstruct(ALARM_17)[0], timeConstruct(ALARM_17)[1], timeConstruct(ALARM_17)[2], startPlayingAlarm17);
-  Alarm.alarmRepeat(timeConstruct(ALARM_18)[0], timeConstruct(ALARM_18)[1], timeConstruct(ALARM_18)[2], startPlayingAlarm18);
-  Alarm.alarmRepeat(timeConstruct(ALARM_19)[0], timeConstruct(ALARM_19)[1], timeConstruct(ALARM_19)[2], startPlayingAlarm19);
-  Alarm.alarmRepeat(timeConstruct(ALARM_20)[0], timeConstruct(ALARM_20)[1], timeConstruct(ALARM_20)[2], startPlayingAlarm20);
-  Alarm.alarmRepeat(timeConstruct(ALARM_21)[0], timeConstruct(ALARM_21)[1], timeConstruct(ALARM_21)[2], startPlayingAlarm21);
-  Alarm.alarmRepeat(timeConstruct(ALARM_22)[0], timeConstruct(ALARM_22)[1], timeConstruct(ALARM_22)[2], startPlayingAlarm22);
-  Alarm.alarmRepeat(timeConstruct(ALARM_23)[0], timeConstruct(ALARM_23)[1], timeConstruct(ALARM_23)[2], startPlayingAlarm23);
-  Alarm.alarmRepeat(timeConstruct(ALARM_24)[0], timeConstruct(ALARM_24)[1], timeConstruct(ALARM_24)[2], startPlayingAlarm24);
-
-  Serial.println("...success!");
-
-  //Bluetooth name setup
-  // Send command to get current BLE device name
-  ble.println("AT+GAPDEVNAME");
-  delay(200);  // Wait for BLE module to respond
-  // Read the full response
-  String response = "";
-  while (ble.available()) {
-    response += (char)ble.read();
-  }
-  response.trim();  // Clean up whitespace
-  // // Debug: print full response
-  // Serial.println("------ BLE raw response ------");
-  // Serial.println(response);
-  // Serial.println("------ END BLE raw response ------");
-
-  // Extract the first line (should be the device name)
-  int newlineIndex = response.indexOf('\n');
-  String currentName = (newlineIndex != -1) ? response.substring(0, newlineIndex) : response;
-  currentName.trim();
-  // Print extracted name
-  Serial.print("Current BLE device name parsed: ");
-  Serial.println(currentName);
-  // Compare to RAPS_ID and update if different
-  if (currentName != String(RAPS_ID)) {
-    Serial.print("Setting new BLE device name to: ");
-    Serial.println(RAPS_ID);
-    String cmd = String("AT+GAPDEVNAME=") + RAPS_ID;
-    ble.println(cmd);
-    delay(200);
-    if (ble.waitForOK()) {
-      Serial.println("BLE device name set successfully.");
-      ble.println("ATZ");  // Reset to apply new name
-      delay(1000);
+  String lastLine = "";
+  String currentLine = "";
+  int lineCount = 0;
+  
+  Serial.println("DEBUG: Starting to read log file...");
+  while (logFile.available()) {
+    char c = logFile.read();
+    if (c == '\n') {
+      if (currentLine.length() > 0) {
+        lastLine = currentLine;
+        currentLine = "";
+        lineCount++;
+      }
     } else {
-      Serial.println("Failed to set BLE device name.");
+      currentLine += c;
     }
+  }
+  Serial.print("DEBUG: Read ");
+  Serial.print(lineCount);
+  Serial.println(" lines from log");
+  
+  if (currentLine.length() > 0) {
+    lastLine = currentLine;
+  }
+  
+  logFile.close();
+  Serial.println("DEBUG: Log file closed");
+  
+  if (lastLine.length() == 0) {
+    Serial.println("DEBUG: No timestamp found in LOG.txt (empty file)");
+    return false;
+  }
+  
+  Serial.print("DEBUG: Last log entry: ");
+  Serial.println(lastLine);
+  
+  int firstSlash = lastLine.indexOf('/');
+  int secondSlash = lastLine.indexOf('/', firstSlash + 1);
+  int firstSpace = lastLine.indexOf(' ', secondSlash);
+  int firstColon = lastLine.indexOf(':', firstSpace);
+  int secondColon = lastLine.indexOf(':', firstColon + 1);
+  int secondSpace = lastLine.indexOf(' ', secondColon);
+  
+  Serial.print("DEBUG: Parse indices - firstSlash:");
+  Serial.print(firstSlash);
+  Serial.print(" secondSlash:");
+  Serial.print(secondSlash);
+  Serial.print(" firstSpace:");
+  Serial.print(firstSpace);
+  Serial.print(" firstColon:");
+  Serial.print(firstColon);
+  Serial.print(" secondColon:");
+  Serial.print(secondColon);
+  Serial.print(" secondSpace:");
+  Serial.println(secondSpace);
+  
+  if (firstSlash == -1 || secondSlash == -1 || firstSpace == -1 || 
+      firstColon == -1 || secondColon == -1) {
+    Serial.println("DEBUG: Could not parse timestamp format");
+    return false;
+  }
+  
+  int logMonth = lastLine.substring(0, firstSlash).toInt();
+  int logDay = lastLine.substring(firstSlash + 1, secondSlash).toInt();
+  int logYear = lastLine.substring(secondSlash + 1, firstSpace).toInt();
+  int logHour = lastLine.substring(firstSpace + 1, firstColon).toInt();
+  int logMinute = lastLine.substring(firstColon + 1, secondColon).toInt();
+  int logSecond = lastLine.substring(secondColon + 1, secondSpace).toInt();
+  
+  Serial.print("DEBUG: Parsed - Month:");
+  Serial.print(logMonth);
+  Serial.print(" Day:");
+  Serial.print(logDay);
+  Serial.print(" Year:");
+  Serial.print(logYear);
+  Serial.print(" Hour:");
+  Serial.print(logHour);
+  Serial.print(" Min:");
+  Serial.print(logMinute);
+  Serial.print(" Sec:");
+  Serial.println(logSecond);
+  
+  tmElements_t tm;
+  tm.Year = logYear - 1970;
+  tm.Month = logMonth;
+  tm.Day = logDay;
+  tm.Hour = logHour;
+  tm.Minute = logMinute;
+  tm.Second = logSecond;
+  
+  Serial.println("DEBUG: Creating time_t from parsed values...");
+  time_t logTime = makeTime(tm);
+  time_t recoveredTime = logTime + 300;//Add 5 minutes to account for low power timer cycling
+  
+  Serial.println("DEBUG: Setting RTC to recovered time...");
+  Teensy3Clock.set(recoveredTime);
+  setTime(recoveredTime);
+  
+  Serial.print("DEBUG: Time recovered and set to: ");
+  digitalClockDisplay();
+  Serial.println(" (10 minutes after last log entry)");
+  
+  Serial.println("DEBUG: Logging time recovery event...");
+  myFile = SD.open("LOG.txt", FILE_WRITE);
+  if (myFile) {
+    myFile.print(present());
+    myFile.print("  ");
+    myFile.print("TIME RECOVERED: RTC was invalid, set to log timestamp + 5 min");
+    myFile.println();
+    myFile.close();
+    Serial.println("DEBUG: Time recovery logged to LOG.txt");
   } else {
-    Serial.println("BLE device name already correct. No change needed.");
+    Serial.println("DEBUG: Warning - Could not log time recovery event");
   }
+  
+  Serial.println("DEBUG: <<< Exiting recoverTimeFromLog() successfully");
+  return true;
+}
 
+bool isTimeValid() {
+  return (year() >= 2025);
+}
+
+// Safe SD operation wrapper - call this before any SD file operations
+bool beginSDOperation() {
+    Serial.println("DEBUG: Beginning SD operation...");
+    
+    // Check if audio is playing
+    wasPlaying = playWav1.isPlaying();
+    if (wasPlaying) {
+        lastPlayingFile = active_file;
+        Serial.print("DEBUG: Pausing audio: ");
+        Serial.println(lastPlayingFile);
+        playWav1.stop();
+        delay(100); // Give time for audio to fully stop
+    }
+    
+    return true;
+}
+
+// Resume audio after SD operation
+void endSDOperation() {
+    Serial.println("DEBUG: Ending SD operation...");
+    
+    // Resume audio if it was playing
+    if (wasPlaying && lastPlayingFile.length() > 0) {
+        Serial.print("DEBUG: Resuming audio: ");
+        Serial.println(lastPlayingFile);
+        playWav1.play(lastPlayingFile.c_str());
+        delay(10);
+    }
+    
+    wasPlaying = false;
+    Serial.println("DEBUG: SD operation complete");
+}
+
+// List files on SD card - safe version
+void listSDFiles() {
+    Serial.println("DEBUG: Listing SD card files...");
+    ble.print("AT+BLEUARTTX=");
+    ble.println("=== SD CARD FILES ===");
+    
+    File root = SD.open("/");
+    if (!root) {
+        Serial.println("ERROR: Failed to open root directory");
+        ble.print("AT+BLEUARTTX=");
+        ble.println("ERROR: Can't open SD");
+        return;
+    }
+    
+    int fileCount = 0;
+    while (true) {
+        File entry = root.openNextFile();
+        if (!entry) {
+            break; // No more files
+        }
+        
+        String fileName = entry.name();
+        long fileSize = entry.size();
+        
+        Serial.print("  ");
+        Serial.print(fileName);
+        Serial.print(" (");
+        Serial.print(fileSize);
+        Serial.println(" bytes)");
+        
+        // Send to BLE in chunks to avoid buffer overflow
+        ble.print("AT+BLEUARTTX=");
+        ble.print(fileName);
+        ble.print(" ");
+        ble.print(fileSize);
+        ble.println("b");
+        
+        entry.close();
+        fileCount++;
+        
+        // Small delay between BLE sends
+        delay(50);
+    }
+    
+    root.close();
+    
+    Serial.print("DEBUG: Found ");
+    Serial.print(fileCount);
+    Serial.println(" files");
+    
+    ble.print("AT+BLEUARTTX=");
+    ble.print("Total: ");
+    ble.print(fileCount);
+    ble.println(" files");
+}
+
+// Modified writeConfigFile with SD operation safety
+bool writeConfigFileSafe() {
+    Serial.println("DEBUG: Writing config file (SAFE)...");
+    
+    // Remove old temp file
+    if (SD.exists("config.tmp")) {
+        SD.remove("config.tmp");
+    }
+    
+    File configFile = SD.open("config.tmp", FILE_WRITE);
+    if (!configFile) {
+        Serial.println("ERROR: Failed to create temp config file");
+        return false;
+    }
+
+    configFile.println("# File format: <field>=<value> NO SPACES");
+    
+    // Write alarm times FIRST
+    configFile.println("# ALARM TIMES");
+    if (ALARM_1) { configFile.print("ALARM_1="); configFile.println(ALARM_1); }
+    if (ALARM_2) { configFile.print("ALARM_2="); configFile.println(ALARM_2); }
+    if (ALARM_3) { configFile.print("ALARM_3="); configFile.println(ALARM_3); }
+    if (ALARM_4) { configFile.print("ALARM_4="); configFile.println(ALARM_4); }
+    if (ALARM_5) { configFile.print("ALARM_5="); configFile.println(ALARM_5); }
+    if (ALARM_6) { configFile.print("ALARM_6="); configFile.println(ALARM_6); }
+    if (ALARM_7) { configFile.print("ALARM_7="); configFile.println(ALARM_7); }
+    if (ALARM_8) { configFile.print("ALARM_8="); configFile.println(ALARM_8); }
+    if (ALARM_9) { configFile.print("ALARM_9="); configFile.println(ALARM_9); }
+    if (ALARM_10) { configFile.print("ALARM_10="); configFile.println(ALARM_10); }
+    if (ALARM_11) { configFile.print("ALARM_11="); configFile.println(ALARM_11); }
+    if (ALARM_12) { configFile.print("ALARM_12="); configFile.println(ALARM_12); }
+    if (ALARM_13) { configFile.print("ALARM_13="); configFile.println(ALARM_13); }
+    if (ALARM_14) { configFile.print("ALARM_14="); configFile.println(ALARM_14); }
+    if (ALARM_15) { configFile.print("ALARM_15="); configFile.println(ALARM_15); }
+    if (ALARM_16) { configFile.print("ALARM_16="); configFile.println(ALARM_16); }
+    if (ALARM_17) { configFile.print("ALARM_17="); configFile.println(ALARM_17); }
+    if (ALARM_18) { configFile.print("ALARM_18="); configFile.println(ALARM_18); }
+    if (ALARM_19) { configFile.print("ALARM_19="); configFile.println(ALARM_19); }
+    if (ALARM_20) { configFile.print("ALARM_20="); configFile.println(ALARM_20); }
+    if (ALARM_21) { configFile.print("ALARM_21="); configFile.println(ALARM_21); }
+    if (ALARM_22) { configFile.print("ALARM_22="); configFile.println(ALARM_22); }
+    if (ALARM_23) { configFile.print("ALARM_23="); configFile.println(ALARM_23); }
+    if (ALARM_24) { configFile.print("ALARM_24="); configFile.println(ALARM_24); }
+
+    // Write file base names
+    configFile.println("# FILE BASES");
+    if (ALARM_1_FILE_BASE) { configFile.print("ALARM_1_FILE_BASE="); configFile.println(ALARM_1_FILE_BASE); }
+    if (ALARM_2_FILE_BASE) { configFile.print("ALARM_2_FILE_BASE="); configFile.println(ALARM_2_FILE_BASE); }
+    if (ALARM_3_FILE_BASE) { configFile.print("ALARM_3_FILE_BASE="); configFile.println(ALARM_3_FILE_BASE); }
+    if (ALARM_4_FILE_BASE) { configFile.print("ALARM_4_FILE_BASE="); configFile.println(ALARM_4_FILE_BASE); }
+    if (ALARM_5_FILE_BASE) { configFile.print("ALARM_5_FILE_BASE="); configFile.println(ALARM_5_FILE_BASE); }
+    if (ALARM_6_FILE_BASE) { configFile.print("ALARM_6_FILE_BASE="); configFile.println(ALARM_6_FILE_BASE); }
+    if (ALARM_7_FILE_BASE) { configFile.print("ALARM_7_FILE_BASE="); configFile.println(ALARM_7_FILE_BASE); }
+    if (ALARM_8_FILE_BASE) { configFile.print("ALARM_8_FILE_BASE="); configFile.println(ALARM_8_FILE_BASE); }
+    if (ALARM_9_FILE_BASE) { configFile.print("ALARM_9_FILE_BASE="); configFile.println(ALARM_9_FILE_BASE); }
+    if (ALARM_10_FILE_BASE) { configFile.print("ALARM_10_FILE_BASE="); configFile.println(ALARM_10_FILE_BASE); }
+    if (ALARM_11_FILE_BASE) { configFile.print("ALARM_11_FILE_BASE="); configFile.println(ALARM_11_FILE_BASE); }
+    if (ALARM_12_FILE_BASE) { configFile.print("ALARM_12_FILE_BASE="); configFile.println(ALARM_12_FILE_BASE); }
+    if (ALARM_13_FILE_BASE) { configFile.print("ALARM_13_FILE_BASE="); configFile.println(ALARM_13_FILE_BASE); }
+    if (ALARM_14_FILE_BASE) { configFile.print("ALARM_14_FILE_BASE="); configFile.println(ALARM_14_FILE_BASE); }
+    if (ALARM_15_FILE_BASE) { configFile.print("ALARM_15_FILE_BASE="); configFile.println(ALARM_15_FILE_BASE); }
+    if (ALARM_16_FILE_BASE) { configFile.print("ALARM_16_FILE_BASE="); configFile.println(ALARM_16_FILE_BASE); }
+    if (ALARM_17_FILE_BASE) { configFile.print("ALARM_17_FILE_BASE="); configFile.println(ALARM_17_FILE_BASE); }
+    if (ALARM_18_FILE_BASE) { configFile.print("ALARM_18_FILE_BASE="); configFile.println(ALARM_18_FILE_BASE); }
+    if (ALARM_19_FILE_BASE) { configFile.print("ALARM_19_FILE_BASE="); configFile.println(ALARM_19_FILE_BASE); }
+    if (ALARM_20_FILE_BASE) { configFile.print("ALARM_20_FILE_BASE="); configFile.println(ALARM_20_FILE_BASE); }
+    if (ALARM_21_FILE_BASE) { configFile.print("ALARM_21_FILE_BASE="); configFile.println(ALARM_21_FILE_BASE); }
+    if (ALARM_22_FILE_BASE) { configFile.print("ALARM_22_FILE_BASE="); configFile.println(ALARM_22_FILE_BASE); }
+    if (ALARM_23_FILE_BASE) { configFile.print("ALARM_23_FILE_BASE="); configFile.println(ALARM_23_FILE_BASE); }
+    if (ALARM_24_FILE_BASE) { configFile.print("ALARM_24_FILE_BASE="); configFile.println(ALARM_24_FILE_BASE); }
+
+    // Write wake/sleep times
+    configFile.println("# Wake Time");
+    if (WAKE_TIME) {
+        configFile.print("WAKE_TIME=");
+        configFile.println(WAKE_TIME);
+    }
+    
+    configFile.println("# Sleep Time");
+    if (SLEEP_TIME) {
+        configFile.print("SLEEP_TIME=");
+        configFile.println(SLEEP_TIME);
+    }
+
+    // Write other settings
+    configFile.println("# OTHER");
+    configFile.print("BAUD_RATE=");
+    configFile.println(BAUD_RATE);
+    
+    configFile.print("NUM_SAMP=");
+    configFile.println(NUM_SAMP);
+    
+    configFile.print("USE_SAMP=");
+    configFile.println(USE_SAMP ? "true" : "false");
+    
+    configFile.print("ALWAYS_ON=");
+    configFile.println(ALWAYS_ON ? "true" : "false");
+    
+    configFile.print("SERIAL_WAIT=");
+    configFile.println(SERIAL_WAIT ? "true" : "false");
+    
+    configFile.print("VOLUME=");
+    configFile.println(VOLUME);
+    
+    if (RAPS_ID) {
+        configFile.print("RAPS_ID=");
+        configFile.println(RAPS_ID);
+    }
+
+    configFile.close();
+    Serial.println("DEBUG: Config written to config.tmp");
+
+    // Replace old config file
+    if (SD.exists("config.cfg")) {
+        SD.remove("config.cfg");
+    }
+    if (!SD.rename("config.tmp", "config.cfg")) {
+        Serial.println("ERROR: Failed to rename config.tmp to config.cfg");
+        return false;
+    }
+
+    Serial.println("DEBUG: Config update complete!");
+    return true;
+}
+
+// Call this in setup AFTER ble.begin()
+void waitForBLECommands(unsigned long timeoutMs = 10000) {
+  if (!ble.isConnected()) return;  // Skip if no central connected
+  Serial.println("DEBUG: Central connected, waiting for commands...");
+  unsigned long start = millis();
+  while (millis() - start < timeoutMs) {
+      ble.println("AT+BLEUARTRX");
+      ble.readline();
+      if (strcmp(ble.buffer, "OK") != 0 && strcmp(ble.buffer, "ERROR") != 0) {
+        String command = String(ble.buffer);
+        command.trim();
+        if (command.equalsIgnoreCase("STATUS")) {
+          ble.print("AT+BLEUARTTX=Time: "); 
+          ble.print(hour()); ble.print(":");
+          if (minute() < 10) ble.print('0'); ble.print(minute()); ble.print(":");
+          if (second() < 10) ble.print('0'); 
+          ble.println(second());
+          delay(20);
+
+          ble.print("AT+BLEUARTTX=Date: "); 
+          ble.print(month()); ble.print("/"); 
+          ble.print(day()); ble.print("/"); ble.println(year());
+          delay(20);
+
+          ble.print("AT+BLEUARTTX=Volume: "); 
+          ble.println(VOLUME);
+          delay(20);
+
+          ble.print("AT+BLEUARTTX=WAKE_TIME: "); 
+          ble.println(WAKE_TIME ? WAKE_TIME : "NULL");
+          delay(20);
+
+          ble.print("AT+BLEUARTTX=SLEEP_TIME: "); 
+          ble.println(SLEEP_TIME ? SLEEP_TIME : "NULL");
+          delay(20);
+
+          Serial.println("DEBUG: Sent STATUS info");
+        }
+
+        else if (command.equalsIgnoreCase("ON")) {  
+          ALWAYS_ON = true;
+          Serial.println("DEBUG: RAPS set to ALWAYS_ON");
+          return;  // exit immediately once ON is received
+        }
+        else {
+          ble.print("AT+BLEUARTTX=INVALID FORMAT");
+          delay(20);
+        }
+      }
+        delay(20);
+      }
+    Serial.println("DEBUG: BLE command wait complete, continuing setup...");
+}
+
+
+
+void setup()  {
+    Serial.begin(9600);  // Start serial FIRST for early debug
+    delay(1000);
+    Serial.println("DEBUG: ====== SETUP START ======");
+  
+    Serial.println("DEBUG: Setting sync provider...");
+    setSyncProvider(getTeensy3Time);
+
+    // EARLY RTC CHECK - Before SD card is even initialized
+    Serial.println("DEBUG: Checking RTC time validity...");
+    Serial.print("DEBUG: Current RTC year: ");
+    Serial.println(year());
+    
+    bool needsTimeRecovery = false;
+    if (year() < 2025) {
+        Serial.println("DEBUG: RTC time is INVALID (year < 2025)");
+        needsTimeRecovery = true;
+    } else {
+        Serial.println("DEBUG: RTC time appears valid");
+        Serial.print("DEBUG: Current time: ");
+        digitalClockDisplay();
+        Serial.println();
+    }
+    
+    Serial.println("DEBUG: Configuring SD card pins...");
+    pinMode(SDCARD_CS_PIN, OUTPUT);
+    didReadConfig = false;
+    SPI.setMOSI(SDCARD_MOSI_PIN);
+    SPI.setSCK(SDCARD_SCK_PIN);
+    
+    Serial.println("DEBUG: Initializing SD card...");
+    if (!SD.begin(SDCARD_CS_PIN)) {
+        Serial.println("DEBUG: SD card init FAILED!");
+        Serial.println("Unable to access the SD card, go to sleep.");
+        delay(1000);
+        doneSignal();    
+    }
+    Serial.println("DEBUG: SD card initialized successfully");
+
+    // CHECK FOR UNEXPECTED RESET
+    if (SD.exists("RUNNING.flg")) {
+    Serial.println("WARNING: Unexpected reset detected!");
+    logError("UNEXPECTED RESET DETECTED - System did not shut down cleanly");
+    SD.remove("RUNNING.flg");
   }
+    
+    // CREATE NEW FLAG
+    File flagFile = SD.open("RUNNING.flg", FILE_WRITE);
+    if (flagFile) {
+        flagFile.println("System started");
+        flagFile.close();
+    }
+    
+    // NOW ATTEMPT TIME RECOVERY IF NEEDED
+    if (needsTimeRecovery) {
+        Serial.println("DEBUG: Attempting time recovery from log file...");
+        if (recoverTimeFromLog()) {
+        Serial.println("DEBUG: Time recovery SUCCESSFUL!");
+        Serial.print("DEBUG: New time: ");
+        digitalClockDisplay();
+        Serial.println();
+        } else {
+        Serial.println("DEBUG: Time recovery FAILED - continuing with invalid time");
+        }
+    };
+    
+    Serial.println("DEBUG: Reading configuration...");
+    didReadConfig = readConfiguration();
+    if (didReadConfig) {
+        Serial.println("DEBUG: Configuration read successfully");
+    } else {
+        Serial.println("DEBUG: Configuration read FAILED");
+    }
+    
+    Serial.println("DEBUG: Restarting serial with BAUD_RATE...");
+    Serial.end();
+    Serial.begin(BAUD_RATE);
+    delay(500);
+    
+    if (SERIAL_WAIT == 1){
+        while(Serial.available()==0) {
+        Serial.println("DEBUG: Waiting for serial input...");
+        delay(1000);
+        }
+    }
+    
+    Serial.println("");
+    Serial.print("Software Version: ");
+    Serial.println(SOFTTWARE_VERSION);
+    
+    Serial.println("DEBUG: Configuring pins...");
+    pinMode(done_pin, OUTPUT);
+    pinMode(mos_pwr, OUTPUT);
+    pinMode(mos_audio, OUTPUT);
+    
+    Serial.println("DEBUG: Initializing Bluefruit...");
+    if (!ble.begin(VERBOSE_MODE)) {
+        Serial.println("DEBUG: Bluefruit init FAILED!");
+    } else {
+        Serial.println("DEBUG: Bluefruit initialized successfully");
+        ble.echo(false);
+
+        // Block here to allow BLE connection + command for up to 10 seconds
+        Serial.println("Always on: ");
+        Serial.println(ALWAYS_ON);
+        waitForBLECommands(10000);
+        Serial.println("Always on: ");
+        Serial.println(ALWAYS_ON);    }
+
+    Serial.println("DEBUG: Current time: ");
+    digitalClockDisplay();
+    Serial.println();
+    
+    Serial.println("DEBUG: Current time: ");
+    digitalClockDisplay();
+    Serial.println();
+    // Check if we should be asleep BEFORE initializing audio
+    if (time_between(SLEEP_TIME, WAKE_TIME) && ALWAYS_ON == false){
+        Serial.println("DEBUG: Currently in sleep window - going to sleep without audio init");
+        printAndLog("Wake during sleep time - going back to sleep");
+        delay(500);
+        // Simple sleep without audio shutdown since audio was never started
+        digitalWrite(mos_pwr, LOW);
+        digitalWrite(mos_audio, LOW);
+        delay(1000);
+        printAndLog("Send done signal to TPL5110");
+        digitalWrite(done_pin, HIGH);
+        delay(1000);
+        digitalWrite(done_pin, LOW);
+        while(1); // Halt here waiting for power cycle
+    }
+    Serial.println("DEBUG: Turning on system (MOSFETs)...");
+    printAndLog("Wake up");
+    digitalWrite(mos_pwr, HIGH);
+    digitalWrite(mos_audio, HIGH);
+    Serial.println("DEBUG: MOSFETs powered on");
+    Serial.println("DEBUG: Initializing audio system...");
+    AudioMemory(8);
+    sgtl5000_1.enable();
+    sgtl5000_1.volume(1.0);         // Ensure volume is unmuted (0.0 to 1.0 scale)
+    if (VOLUME == 0) {
+        sgtl5000_1.muteLineout();   // completely mute
+        mix1.gain(0, 0.0);
+    } else {
+        sgtl5000_1.unmuteLineout(); // ensure line out is active
+        float mixerGain = constrain(VOLUME, 0, 100) / 100.0;  // map 0–100 → 0.0–1.0
+        mix1.gain(0, mixerGain);     // input 0 of mixer
+    }
+    Serial.println("Audio ready.");
+    
+    Serial.println("DEBUG: Initializing entropy...");
+    Entropy.Initialize();
+    Serial.println("DEBUG: Entropy initialized");
+    
+    Serial.println("DEBUG: Setting up alarms...");
+    Alarm.alarmRepeat(timeConstruct(ALARM_1)[0],  timeConstruct(ALARM_1)[1],  timeConstruct(ALARM_1)[2],  startPlayingAlarm1);
+    Alarm.alarmRepeat(timeConstruct(ALARM_2)[0],  timeConstruct(ALARM_2)[1],  timeConstruct(ALARM_2)[2],  startPlayingAlarm2);
+    Alarm.alarmRepeat(timeConstruct(ALARM_3)[0],  timeConstruct(ALARM_3)[1],  timeConstruct(ALARM_3)[2],  startPlayingAlarm3);
+    Alarm.alarmRepeat(timeConstruct(ALARM_4)[0],  timeConstruct(ALARM_4)[1],  timeConstruct(ALARM_4)[2],  startPlayingAlarm4);
+    Alarm.alarmRepeat(timeConstruct(ALARM_5)[0],  timeConstruct(ALARM_5)[1],  timeConstruct(ALARM_5)[2],  startPlayingAlarm5);
+    Alarm.alarmRepeat(timeConstruct(ALARM_6)[0],  timeConstruct(ALARM_6)[1],  timeConstruct(ALARM_6)[2],  startPlayingAlarm6);
+    Alarm.alarmRepeat(timeConstruct(ALARM_7)[0],  timeConstruct(ALARM_7)[1],  timeConstruct(ALARM_7)[2],  startPlayingAlarm7);
+    Alarm.alarmRepeat(timeConstruct(ALARM_8)[0],  timeConstruct(ALARM_8)[1],  timeConstruct(ALARM_8)[2],  startPlayingAlarm8);
+    Alarm.alarmRepeat(timeConstruct(ALARM_9)[0],  timeConstruct(ALARM_9)[1],  timeConstruct(ALARM_9)[2],  startPlayingAlarm9);
+    Alarm.alarmRepeat(timeConstruct(ALARM_10)[0], timeConstruct(ALARM_10)[1], timeConstruct(ALARM_10)[2], startPlayingAlarm10);
+    Alarm.alarmRepeat(timeConstruct(ALARM_11)[0], timeConstruct(ALARM_11)[1], timeConstruct(ALARM_11)[2], startPlayingAlarm11);
+    Alarm.alarmRepeat(timeConstruct(ALARM_12)[0], timeConstruct(ALARM_12)[1], timeConstruct(ALARM_12)[2], startPlayingAlarm12);
+    Alarm.alarmRepeat(timeConstruct(ALARM_13)[0], timeConstruct(ALARM_13)[1], timeConstruct(ALARM_13)[2], startPlayingAlarm13);
+    Alarm.alarmRepeat(timeConstruct(ALARM_14)[0], timeConstruct(ALARM_14)[1], timeConstruct(ALARM_14)[2], startPlayingAlarm14);
+    Alarm.alarmRepeat(timeConstruct(ALARM_15)[0], timeConstruct(ALARM_15)[1], timeConstruct(ALARM_15)[2], startPlayingAlarm15);
+    Alarm.alarmRepeat(timeConstruct(ALARM_16)[0], timeConstruct(ALARM_16)[1], timeConstruct(ALARM_16)[2], startPlayingAlarm16);
+    Alarm.alarmRepeat(timeConstruct(ALARM_17)[0], timeConstruct(ALARM_17)[1], timeConstruct(ALARM_17)[2], startPlayingAlarm17);
+    Alarm.alarmRepeat(timeConstruct(ALARM_18)[0], timeConstruct(ALARM_18)[1], timeConstruct(ALARM_18)[2], startPlayingAlarm18);
+    Alarm.alarmRepeat(timeConstruct(ALARM_19)[0], timeConstruct(ALARM_19)[1], timeConstruct(ALARM_19)[2], startPlayingAlarm19);
+    Alarm.alarmRepeat(timeConstruct(ALARM_20)[0], timeConstruct(ALARM_20)[1], timeConstruct(ALARM_20)[2], startPlayingAlarm20);
+    Alarm.alarmRepeat(timeConstruct(ALARM_21)[0], timeConstruct(ALARM_21)[1], timeConstruct(ALARM_21)[2], startPlayingAlarm21);
+    Alarm.alarmRepeat(timeConstruct(ALARM_22)[0], timeConstruct(ALARM_22)[1], timeConstruct(ALARM_22)[2], startPlayingAlarm22);
+    Alarm.alarmRepeat(timeConstruct(ALARM_23)[0], timeConstruct(ALARM_23)[1], timeConstruct(ALARM_23)[2], startPlayingAlarm23);
+    Alarm.alarmRepeat(timeConstruct(ALARM_24)[0], timeConstruct(ALARM_24)[1], timeConstruct(ALARM_24)[2], startPlayingAlarm24);
+    Serial.println("DEBUG: Alarms configured successfully");
+    
+    Serial.println("DEBUG: Configuring BLE device name...");
+    ble.println("AT+GAPDEVNAME");
+    delay(200);
+    String response = "";
+    while (ble.available()) {
+        response += (char)ble.read();
+    }
+    response.trim();
+    int newlineIndex = response.indexOf('\n');
+    String currentName = (newlineIndex != -1) ? response.substring(0, newlineIndex) : response;
+    currentName.trim();
+    Serial.print("DEBUG: Current BLE device name: ");
+    Serial.println(currentName);
+    
+    if (currentName != String(RAPS_ID)) {
+        Serial.print("DEBUG: Setting new BLE device name to: ");
+        Serial.println(RAPS_ID);
+        String cmd = String("AT+GAPDEVNAME=") + RAPS_ID;
+        ble.println(cmd);
+        delay(200);
+        if (ble.waitForOK()) {
+        Serial.println("DEBUG: BLE device name set successfully");
+        ble.println("ATZ");
+        delay(1000);
+        } else {
+        Serial.println("DEBUG: Failed to set BLE device name");
+        }
+    } else {
+        Serial.println("DEBUG: BLE device name already correct");
+    }
+    
+    Serial.println("DEBUG: ====== SETUP COMPLETE ======");
+    }
 
 void loop() {
-  digitalClockDisplay(); //serial print the time according to RTC
+  static unsigned long lastLoopTime = 0;
+  static unsigned long lastStatusUpdate = 0;
+  static unsigned long lastBLECheck = 0;  
+  // Service audio library frequently - don't block
+  if (millis() - lastLoopTime < 1000) {
+      delay(10);  // Short delay to service audio/alarms
+      Alarm.delay(0);  // Service alarms without blocking
+      return;
+  }
+  lastLoopTime = millis();
+    
+  // ------------------------------------------------------------
+  // 1. PRIORITY: Handle pending SD operations
+  // ------------------------------------------------------------
+  if (sdOperationPending) {
+      Serial.println("DEBUG: Processing pending SD operation...");
+      // Begin safe SD access
+      beginSDOperation();
+      // Execute the pending operation
+      switch (pendingSDOperation) {
+          case 1: // List files
+              listSDFiles();
+              break;
+          case 2: // Write config
+              if (writeConfigFileSafe()) {
+                  ble.print("AT+BLEUARTTX=");
+                  ble.println("CONFIG UPDATED");
+                  Serial.println("Config updated successfully");
+                  // Always reboot after config write
+                  Serial.println("DEBUG: Rebooting system for config changes...");
+                  ble.print("AT+BLEUARTTX=");
+                  ble.println("REBOOTING...");
+                  delay(500);  // Give BLE time to send
+                  // Teensy software reset
+                  SCB_AIRCR = 0x05FA0004;  // Reset via ARM's System Control Block
+              } else {
+                  ble.print("AT+BLEUARTTX=");
+                  ble.println("WRITE FAILED");
+                  Serial.println("Config write failed!");
+              }
+              break;
+      }
+      // End safe SD access (resumes audio if needed)
+      endSDOperation();
+      // Clear the pending flag
+      sdOperationPending = false;
+      pendingSDOperation = 0;
+      Serial.println("DEBUG: SD operation complete");
+      return; // Exit loop to let audio resume properly
+  }
+  // ------------------------------------------------------------
+  // 2. Handle config update (set flag but don't execute yet)
+  // ------------------------------------------------------------
+  if (configUpdatePending) {
+      Serial.println("DEBUG: Config update requested...");
+      bool validVar = false;
+
+      if (pendingVarName == "SLEEP_TIME") {
+          if (SLEEP_TIME) free(SLEEP_TIME);
+          SLEEP_TIME = strdup(pendingValue.c_str());
+          validVar = true;
+      }
+      else if (pendingVarName == "WAKE_TIME") {
+          if (WAKE_TIME) free(WAKE_TIME);
+          WAKE_TIME = strdup(pendingValue.c_str());
+          validVar = true;
+      }
+      else if (pendingVarName == "VOLUME") {
+          VOLUME = pendingValue.toInt();  // Read the new volume value (0–100)
+          VOLUME = constrain(VOLUME, 0, 100);
+          if (VOLUME == 0) {
+              sgtl5000_1.muteLineout();    // completely mute
+              mix1.gain(0, 0.0);           // also set mixer to zero just in case
+          } else {
+              sgtl5000_1.unmuteLineout();  // ensure line out is active
+              float mixerGain = VOLUME / 100.0;
+              mix1.gain(0, mixerGain);
+          }
+          validVar = true;
+      }
+      else if (pendingVarName == "ALWAYS_ON") {
+          ALWAYS_ON = (pendingValue == "true" || pendingValue == "1");
+          validVar = true;
+      }
+      else if (pendingVarName == "RAPS_ID") {
+          if (RAPS_ID) free(RAPS_ID);
+          RAPS_ID = strdup(pendingValue.c_str());
+          validVar = true;
+      }
+      else if (pendingVarName.startsWith("ALARM_")) {
+          int alarmNum = pendingVarName.substring(6).toInt();
+          if (alarmNum >= 1 && alarmNum <= 24) {
+              char** alarmPtr = nullptr;
+              switch(alarmNum) {
+                  case 1: alarmPtr = &ALARM_1; break;
+                  case 2: alarmPtr = &ALARM_2; break;
+                  case 3: alarmPtr = &ALARM_3; break;
+                  case 4: alarmPtr = &ALARM_4; break;
+                  case 5: alarmPtr = &ALARM_5; break;
+                  case 6: alarmPtr = &ALARM_6; break;
+                  case 7: alarmPtr = &ALARM_7; break;
+                  case 8: alarmPtr = &ALARM_8; break;
+                  case 9: alarmPtr = &ALARM_9; break;
+                  case 10: alarmPtr = &ALARM_10; break;
+                  case 11: alarmPtr = &ALARM_11; break;
+                  case 12: alarmPtr = &ALARM_12; break;
+                  case 13: alarmPtr = &ALARM_13; break;
+                  case 14: alarmPtr = &ALARM_14; break;
+                  case 15: alarmPtr = &ALARM_15; break;
+                  case 16: alarmPtr = &ALARM_16; break;
+                  case 17: alarmPtr = &ALARM_17; break;
+                  case 18: alarmPtr = &ALARM_18; break;
+                  case 19: alarmPtr = &ALARM_19; break;
+                  case 20: alarmPtr = &ALARM_20; break;
+                  case 21: alarmPtr = &ALARM_21; break;
+                  case 22: alarmPtr = &ALARM_22; break;
+                  case 23: alarmPtr = &ALARM_23; break;
+                  case 24: alarmPtr = &ALARM_24; break;
+              }
+              if (alarmPtr) {
+                  if (*alarmPtr) free(*alarmPtr);
+                  *alarmPtr = strdup(pendingValue.c_str());
+                  validVar = true;
+              }
+          }
+      }
+      if (validVar) {
+          sdOperationPending = true;
+          pendingSDOperation = 2;
+      } else {
+          ble.print("AT+BLEUARTTX=");
+          ble.println("UNKNOWN VARIABLE");
+          Serial.println("Unknown variable, nothing written");
+      }
+      configUpdatePending = false;
+      return;
+  }
+  // ------------------------------------------------------------
+  // 3. Normal operation: time display and fault check
+  // ------------------------------------------------------------
+  digitalClockDisplay();
   Serial.println();
-  // Serial.print("Millis at startup: ");//Check if millis is somehow carrying over
-  // Serial.println(millis());//Check if millis is somehow carrying over
-  fault_check(); //If wavfile isn't playing, force on based on time
-  // Send current time and active file to Bluetooth UART
-  // Serial.println(String("Volume is: ") + VOLUME);
-  ble.print("AT+BLEUARTTX=");
-  ble.print("Time: ");
-  ble.print(hour());
-  ble.print(":");
-  if (minute() < 10) ble.print('0');
-  ble.print(minute());
-  ble.print(":");
-  if (second() < 10) ble.print('0');
-  ble.print(second());
-  ble.print(" | File: ");
-  ble.println(active_file);
-  Alarm.delay(1000);
+  fault_check();
+  
+  // ------------------------------------------------------------
+  // 4. Check BLE UART for commands
+  // ------------------------------------------------------------
+  static bool bleEnabled = true;  // Set to false to disable BLE polling
+  if (bleEnabled && millis() - lastBLECheck > 500) {
+    lastBLECheck = millis();
+    // Request BLE UART data
+    ble.println("AT+BLEUARTRX");
+    // Wait until data is available or a timeout occurs
+    unsigned long start = millis();
+    while (!ble.available() && millis() - start < 50) {
+              // optional: yield(); 
+
+    }
+    if (ble.available()) {
+        ble.readline();                     // Read BLE response once
+        String command = String(ble.buffer); // store as String
+        command.trim();
+        // Serial debugging (optional)
+        Serial.print("RAW RX: '");
+        Serial.print(ble.buffer);
+        Serial.println("'");
+        
+        if (strcmp(ble.buffer, "OK") != 0 && strcmp(ble.buffer, "ERROR") != 0) {
+          // HELLO command
+          if (command == "HELLO") {
+              ble.print("AT+BLEUARTTX=");
+              ble.println("HI FRIEND");
+              Serial.println("Sent: HI FRIEND");
+          }
+          // STATUS command
+          else if (command == "STATUS") {
+              ble.print("AT+BLEUARTTX=");
+              ble.print("Playing: ");
+              ble.println(playWav1.isPlaying() ? "YES" : "NO");
+              ble.print("AT+BLEUARTTX=");
+              ble.print("File: ");
+              ble.println(active_file);
+              ble.print("AT+BLEUARTTX=");
+              ble.print("Volume: ");
+              ble.println(VOLUME);
+              ble.print("AT+BLEUARTTX=");
+              ble.print("Sample: ");
+              ble.println(sampleNumber);
+              Serial.println("Sent: STATUS info");
+          }
+          // GET command
+          else if (command.startsWith("GET ")) {
+              String varName = command.substring(4);
+              varName.trim();
+              ble.print("AT+BLEUARTTX=");
+
+              if (varName == "VOLUME") {
+                  ble.print("VOLUME=");
+                  ble.println(VOLUME);
+              }
+              else if (varName == "WAKE_TIME") {
+                  ble.print("WAKE_TIME=");
+                  ble.println(WAKE_TIME ? WAKE_TIME : "NULL");
+              }
+              else if (varName == "SLEEP_TIME") {
+                  ble.print("SLEEP_TIME=");
+                  ble.println(SLEEP_TIME ? SLEEP_TIME : "NULL");
+              }
+              else if (varName == "ALWAYS_ON") {
+                  ble.print("ALWAYS_ON=");
+                  ble.println(ALWAYS_ON ? "1" : "0");
+              }
+              else if (varName == "RAPS_ID") {
+                  ble.print("RAPS_ID=");
+                  ble.println(RAPS_ID ? RAPS_ID : "NULL");
+              }
+              else if (varName.startsWith("ALARM_")) {
+                  int alarmNum = varName.substring(6).toInt();
+                  char* alarmTime = nullptr;
+                  switch(alarmNum) {
+                      case 1: alarmTime = ALARM_1; break;
+                      case 2: alarmTime = ALARM_2; break;
+                      case 3: alarmTime = ALARM_3; break;
+                      case 4: alarmTime = ALARM_4; break;
+                      case 5: alarmTime = ALARM_5; break;
+                      case 6: alarmTime = ALARM_6; break;
+                      case 7: alarmTime = ALARM_7; break;
+                      case 8: alarmTime = ALARM_8; break;
+                      case 9: alarmTime = ALARM_9; break;
+                      case 10: alarmTime = ALARM_10; break;
+                      case 11: alarmTime = ALARM_11; break;
+                      case 12: alarmTime = ALARM_12; break;
+                      case 13: alarmTime = ALARM_13; break;
+                      case 14: alarmTime = ALARM_14; break;
+                      case 15: alarmTime = ALARM_15; break;
+                      case 16: alarmTime = ALARM_16; break;
+                      case 17: alarmTime = ALARM_17; break;
+                      case 18: alarmTime = ALARM_18; break;
+                      case 19: alarmTime = ALARM_19; break;
+                      case 20: alarmTime = ALARM_20; break;
+                      case 21: alarmTime = ALARM_21; break;
+                      case 22: alarmTime = ALARM_22; break;
+                      case 23: alarmTime = ALARM_23; break;
+                      case 24: alarmTime = ALARM_24; break;
+                  }
+                  if (alarmTime) {
+                      ble.print(varName);
+                      ble.print("=");
+                      ble.println(alarmTime);
+                  } else {
+                      ble.println("NULL");
+                  }
+              }
+              else {
+                  ble.println("UNKNOWN VAR");
+              }
+              Serial.print("Sent: GET ");
+              Serial.println(varName);
+          }
+          // SET command
+          else if (command.startsWith("SET ")) {
+              int firstSpace = command.indexOf(' ');
+              int secondSpace = command.indexOf(' ', firstSpace + 1);
+              if (secondSpace > 0) {
+                  String varName = command.substring(firstSpace + 1, secondSpace);
+                  String value = command.substring(secondSpace + 1);
+                  varName.trim();
+                  value.trim();
+
+                  Serial.print("Setting ");
+                  Serial.print(varName);
+                  Serial.print(" to ");
+                  Serial.println(value);
+
+                  pendingVarName = varName;
+                  pendingValue = value;
+                  configUpdatePending = true;
+                  return;
+              }
+              else {
+                  ble.print("AT+BLEUARTTX=");
+                  ble.println("INVALID FORMAT");
+              }
+          }
+          // HELP command
+          else if (command == "HELP") {
+              ble.print("AT+BLEUARTTX=");
+              ble.println("=== COMMANDS ===");
+              delay(50);
+              ble.print("AT+BLEUARTTX=");
+              ble.println("HELLO - test connection");
+              delay(50);
+              ble.print("AT+BLEUARTTX=");
+              ble.println("STATUS - system info");
+              delay(50);
+              ble.print("AT+BLEUARTTX=");
+              ble.println("LIST - show SD files");
+              delay(50);
+              ble.print("AT+BLEUARTTX=");
+              ble.println("GET <var> - read config");
+              delay(50);
+              ble.print("AT+BLEUARTTX=");
+              ble.println("SET <var> <val> - update");
+              delay(50);
+              ble.print("AT+BLEUARTTX=");
+              ble.println("PLAY <file> - play file");
+              delay(50);
+              ble.print("AT+BLEUARTTX=");
+              ble.println("STOP - stop audio");
+              delay(50);
+              ble.print("AT+BLEUARTTX=");
+              ble.println("REBOOT - restart system");
+              Serial.println("Sent: HELP");
+          }
+          // REBOOT command
+          else if (command == "REBOOT") {
+              Serial.println("Manual reboot requested");
+              ble.print("AT+BLEUARTTX=");
+              ble.println("REBOOTING NOW...");
+              delay(500);
+              SCB_AIRCR = 0x05FA0004;
+          }
+      }
+      Alarm.delay(1000);  // KEEP THE OLD BLOCKING DELAY
+  }
+}
+
+  
+  // ------------------------------------------------------------
+  // 5. Status message every 30 seconds (reduced from 5)
+  // ------------------------------------------------------------
+  if (bleEnabled && millis() - lastStatusUpdate > 30000) {
+      lastStatusUpdate = millis();
+      ble.print("AT+BLEUARTTX=");
+      ble.print("Time: ");
+      ble.print(hour());
+      ble.print(":");
+      if (minute() < 10) ble.print('0');
+      ble.print(minute());
+      ble.print(":");
+      if (second() < 10) ble.print('0');
+      ble.print(second());
+      ble.print(" | File: ");
+      ble.println(active_file);
+  }
 }
