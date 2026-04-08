@@ -206,14 +206,14 @@ std::string makeFileNameString(std::string file_base, int samp, bool use_samp){
 }
 
 // WAV FILE PLAYER AND TPL5110 HELPER FUNCTIONS
-// playFile function from WAV file player
-void playFile(std::string filename) { //const char string[]
-  printAndLog("Playing file:");
-  printAndLog(filename);
+void playFile(std::string filename) {
+  // printAndLog("Playing file:");
+  // printAndLog(filename);
   playWav1.play(filename.c_str());
-  active_file = filename.c_str();
+  active_file = filename.c_str();  // <-- Dangling pointer but...
   delay(10);
 }
+
 // Turn off sound
 void stopFile() {
   printAndLog("Stopping audio"); //ths goes at end of stopFile block. putting here for testing.
