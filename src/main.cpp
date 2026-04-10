@@ -1,7 +1,8 @@
 //This code plays the loaded wav files on a schedule AND
 //will tell the TPL510 that it's done when Sound Off is trigered
 //#define SOFTTWARE_VERSION "v2.3" //This includes BLUEFRUIT print statements and renaming, volume update, fix to config file reference
-#define SOFTTWARE_VERSION "v3.0" //This includes bluetooth interaction via the Bluefruit Connect app. You can send "STATUS" for a quick 
+#define SOFTWARE_VERSION "v3.1" //This includes RTC setting via bluetooth and software version STATUS check, Update made 04/09/2026
+//This includes bluetooth interaction via the Bluefruit Connect app. You can send "STATUS" for a quick 
 //report on the RTC date and time as well as volume and wake/sleep times. You can send "ON" to enable (temporarily) ALWAYS_ON so that 
 //the system turns on as it cycles. Once on you can send more complex commands like "HELLO" or "SET______" insert variable of choice, eg.
 //"SET VOLUME 13" or "SET WAKE_TIME 09:00:00". The system will reboot when a SET command is sent. 
@@ -1194,7 +1195,7 @@ bool recoverTimeFromLog() {
   
   Serial.print("DEBUG: Time recovered and set to: ");
   digitalClockDisplay();
-  Serial.println(" (10 minutes after last log entry)");
+  Serial.println(" (5 minutes after last log entry)");
   
   Serial.println("DEBUG: Logging time recovery event...");
   myFile = SD.open("LOG.txt", FILE_WRITE);
@@ -1467,6 +1468,10 @@ void waitForBLECommands(unsigned long timeoutMs = 10000) {
           ble.println(SLEEP_TIME ? SLEEP_TIME : "NULL");
           delay(20);
 
+          ble.print("AT+BLEUARTTX=Version: ");
+          ble.println(SOFTWARE_VERSION);
+          delay(20);
+
           Serial.println("DEBUG: Sent STATUS info");
         }
 
@@ -1483,6 +1488,95 @@ void waitForBLECommands(unsigned long timeoutMs = 10000) {
         delay(20);
       }
     Serial.println("DEBUG: BLE command wait complete, continuing setup...");
+}
+
+bool parseDateTimeString(String dateTimeStr, tmElements_t& tm) {
+    dateTimeStr.trim();   // remove leading/trailing whitespace
+
+    // Allow either "YYYY-MM-DD HH:MM:SS" or "YYYY-MM-DDTHH:MM:SS"
+    dateTimeStr.replace("T", " ");
+
+    // Collapse accidental double spaces between date and time
+    while (dateTimeStr.indexOf("  ") != -1) {
+        dateTimeStr.replace("  ", " ");
+    }
+
+    Serial.print("DEBUG RTC raw string: '");
+    Serial.print(dateTimeStr);
+    Serial.print("' len=");
+    Serial.println(dateTimeStr.length());
+
+    // Must still be at least the expected length
+    if (dateTimeStr.length() < 19) {
+        return false;
+    }
+
+    // Only use the first 19 chars in case BLE app adds extra junk
+    dateTimeStr = dateTimeStr.substring(0, 19);
+
+    if (dateTimeStr.charAt(4) != '-' || dateTimeStr.charAt(7) != '-' ||
+        dateTimeStr.charAt(10) != ' ' || dateTimeStr.charAt(13) != ':' ||
+        dateTimeStr.charAt(16) != ':') {
+        return false;
+    }
+
+    int yr  = dateTimeStr.substring(0, 4).toInt();
+    int mon = dateTimeStr.substring(5, 7).toInt();
+    int day = dateTimeStr.substring(8, 10).toInt();
+    int hr  = dateTimeStr.substring(11, 13).toInt();
+    int min = dateTimeStr.substring(14, 16).toInt();
+    int sec = dateTimeStr.substring(17, 19).toInt();
+
+    if (yr < 2020 || yr > 2099) return false;
+    if (mon < 1 || mon > 12) return false;
+    if (day < 1 || day > 31) return false;
+    if (hr < 0 || hr > 23) return false;
+    if (min < 0 || min > 59) return false;
+    if (sec < 0 || sec > 59) return false;
+
+    tm.Year = yr - 1970;
+    tm.Month = mon;
+    tm.Day = day;
+    tm.Hour = hr;
+    tm.Minute = min;
+    tm.Second = sec;
+
+    return true;
+}
+
+bool setRTCFromBLE(const String& dateTimeStr) {
+    tmElements_t tm;
+
+    if (!parseDateTimeString(dateTimeStr, tm)) {
+        Serial.println("RTC SET FAILED: invalid datetime format");
+        return false;
+    }
+    time_t newTime = makeTime(tm);
+    // Update both TimeLib and Teensy RTC
+    Teensy3Clock.set(newTime);
+    setTime(newTime);
+    Serial.print("RTC updated to: ");
+    Serial.print(year());
+    Serial.print("-");
+    if (month() < 10) Serial.print('0');
+    Serial.print(month());
+    Serial.print("-");
+    if (day() < 10) Serial.print('0');
+    Serial.print(day());
+    Serial.print(" ");
+    if (hour() < 10) Serial.print('0');
+    Serial.print(hour());
+    Serial.print(":");
+    if (minute() < 10) Serial.print('0');
+    Serial.print(minute());
+    Serial.print(":");
+    if (second() < 10) Serial.print('0');
+    Serial.println(second());
+    logSD("RTC manually set via BLE to " + std::to_string(year()) + "-" +
+          std::to_string(month()) + "-" + std::to_string(day()) + " " +
+          std::to_string(hour()) + ":" + std::to_string(minute()) + ":" +
+          std::to_string(second()));
+    return true;
 }
 
 
@@ -1575,7 +1669,7 @@ void setup()  {
     
     Serial.println("");
     Serial.print("Software Version: ");
-    Serial.println(SOFTTWARE_VERSION);
+    Serial.println(SOFTWARE_VERSION);
     
     Serial.println("DEBUG: Configuring pins...");
     pinMode(done_pin, OUTPUT);
@@ -1880,6 +1974,9 @@ void loop() {
           // STATUS command
           else if (command == "STATUS") {
               ble.print("AT+BLEUARTTX=");
+              ble.print("Version: ");
+              ble.println(SOFTWARE_VERSION);
+              ble.print("AT+BLEUARTTX=");
               ble.print("Playing: ");
               ble.println(playWav1.isPlaying() ? "YES" : "NO");
               ble.print("AT+BLEUARTTX=");
@@ -1971,16 +2068,49 @@ void loop() {
                   String value = command.substring(secondSpace + 1);
                   varName.trim();
                   value.trim();
-
                   Serial.print("Setting ");
                   Serial.print(varName);
                   Serial.print(" to ");
                   Serial.println(value);
-
-                  pendingVarName = varName;
-                  pendingValue = value;
-                  configUpdatePending = true;
-                  return;
+                  // Special case: live RTC update, no config write, no reboot
+                  if (varName == "RTC") {
+                      Serial.print("DEBUG RTC value received: '");
+                      Serial.print(value);
+                      Serial.print("' len=");
+                      Serial.println(value.length());
+                      if (setRTCFromBLE(value)) {
+                          ble.print("AT+BLEUARTTX=");
+                          ble.println("RTC UPDATED");
+                          ble.print("AT+BLEUARTTX=");
+                          ble.print("NEW TIME: ");
+                          ble.print(year());
+                          ble.print("-");
+                          if (month() < 10) ble.print('0');
+                          ble.print(month());
+                          ble.print("-");
+                          if (day() < 10) ble.print('0');
+                          ble.print(day());
+                          ble.print(" ");
+                          if (hour() < 10) ble.print('0');
+                          ble.print(hour());
+                          ble.print(":");
+                          if (minute() < 10) ble.print('0');
+                          ble.print(minute());
+                          ble.print(":");
+                          if (second() < 10) ble.print('0');
+                          ble.println(second());
+                      } else {
+                          ble.print("AT+BLEUARTTX=");
+                          ble.println("RTC SET FAILED");
+                          ble.print("AT+BLEUARTTX=");
+                          ble.println("FORMAT: SET RTC YYYY-MM-DD HH:MM:SS");
+                      }
+                  } else {
+                      pendingVarName = varName;
+                      pendingValue = value;
+                      configUpdatePending = true;
+                      return;
+                  }
               }
               else {
                   ble.print("AT+BLEUARTTX=");
@@ -2006,6 +2136,9 @@ void loop() {
               delay(50);
               ble.print("AT+BLEUARTTX=");
               ble.println("SET <var> <val> - update");
+              delay(50);
+              ble.print("AT+BLEUARTTX=");
+              ble.println("SET RTC YYYY-MM-DD HH:MM:SS");
               delay(50);
               ble.print("AT+BLEUARTTX=");
               ble.println("PLAY <file> - play file");
